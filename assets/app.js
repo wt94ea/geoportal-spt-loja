@@ -293,15 +293,6 @@ function resetFilters(){
   currentMetric = 'capacidad_portante_kg_cm2';
   render();
 }
-function downloadGeoJSON(){
-  const filtered = {type:'FeatureCollection', features: filteredFeatures()};
-  const blob = new Blob([JSON.stringify(filtered, null, 2)], {type:'application/geo+json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'spt_publico_filtrado.geojson';
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
 
 fetch(DATA_URL)
   .then(r => {
@@ -329,4 +320,3 @@ fetch(DATA_URL)
 });
 searchInput.addEventListener('input', render);
 el('reset-btn').addEventListener('click', resetFilters);
-el('download-btn').addEventListener('click', downloadGeoJSON);
