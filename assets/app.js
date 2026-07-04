@@ -14,7 +14,7 @@ const claroTecnico = L.tileLayer(
     updateWhenIdle: true,
     keepBuffer: 4
   }
-).addTo(map);
+);
 
 // OpenStreetMap estándar
 const osm = L.tileLayer(
@@ -46,9 +46,10 @@ const topografico = L.tileLayer(
     maxZoom: 19,
     attribution: 'Tiles &copy; Esri',
     updateWhenIdle: true,
-    keepBuffer: 4
+    updateWhenZooming: false,
+    keepBuffer: 6
   }
-);
+).addTo(map);
 
 L.control.layers({
   'Claro técnico': claroTecnico,
@@ -58,9 +59,19 @@ L.control.layers({
 }, null, {
   collapsed: true
 }).addTo(map);
+map.on('baselayerchange', () => {
+  setTimeout(corregirRenderMapa, 250);
+  setTimeout(corregirRenderMapa, 900);
+});
 // Corrección de render para evitar cuadros negros o teselas incompletas
 function corregirRenderMapa() {
   map.invalidateSize(true);
+
+  if (geoLayer && geoLayer.getBounds && geoLayer.getBounds().isValid()) {
+    map.fitBounds(geoLayer.getBounds().pad(0.12), {
+      animate: false
+    });
+  }
 }
 
 window.addEventListener('load', () => {
@@ -256,9 +267,15 @@ function render(){
   updateLegend(currentMetric);
   updateList(fc.features);
 
-  if(fc.features.length){
-    map.fitBounds(geoLayer.getBounds().pad(0.12));
-  }
+if(fc.features.length){
+  map.fitBounds(geoLayer.getBounds().pad(0.12), {
+    animate: false
+  });
+
+  setTimeout(corregirRenderMapa, 250);
+  setTimeout(corregirRenderMapa, 900);
+  setTimeout(corregirRenderMapa, 1800);
+}
 }
 function focusCode(code){
   const layer = indexByCode.get(code);
