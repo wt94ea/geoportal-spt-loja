@@ -352,3 +352,125 @@ input{
     display:flex;
   }
 }
+/* =====================================================
+   PARCHE DEFINITIVO: BOTONES MÓVILES DEL PANEL
+   ===================================================== */
+
+.brand{
+  position:relative;
+}
+
+#sidebar-toggle,
+#sidebar-restore{
+  box-sizing:border-box !important;
+
+  width:44px !important;
+  min-width:44px !important;
+  max-width:44px !important;
+
+  height:44px !important;
+  min-height:44px !important;
+  max-height:44px !important;
+
+  padding:0 !important;
+  margin:0 !important;
+
+  display:none !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  border:1px solid rgba(240,127,69,.85) !important;
+  border-radius:50% !important;
+
+  background:#182233 !important;
+  color:#f07f45 !important;
+
+  box-shadow:0 10px 28px rgba(0,0,0,.38) !important;
+
+  line-height:1 !important;
+  text-align:center !important;
+  cursor:pointer;
+}
+
+#sidebar-toggle span,
+#sidebar-restore span{
+  display:block;
+  width:auto !important;
+  height:auto !important;
+  margin:0 !important;
+  padding:0 !important;
+
+  color:inherit !important;
+  font-size:30px !important;
+  font-weight:500 !important;
+  line-height:1 !important;
+}
+
+#sidebar-toggle{
+  position:absolute !important;
+  top:14px !important;
+  right:14px !important;
+  z-index:50 !important;
+}
+
+#sidebar-restore{
+  position:fixed !important;
+  top:16px !important;
+  left:16px !important;
+  z-index:5000 !important;
+}
+
+@media(max-width:900px){
+
+  /* Flecha visible cuando está abierto el panel */
+  #sidebar-toggle{
+    display:flex !important;
+  }
+
+  /* Botón menú oculto mientras se ve el panel */
+  #sidebar-restore{
+    display:none !important;
+  }
+
+  /* Al abrir el mapa, desaparece el panel */
+  body.sidebar-collapsed{
+    overflow:hidden !important;
+  }
+
+  body.sidebar-collapsed .sidebar{
+    display:none !important;
+  }
+
+  body.sidebar-collapsed #sidebar-toggle{
+    display:none !important;
+  }
+
+  /* Aparece el menú para recuperar el panel */
+  body.sidebar-collapsed #sidebar-restore{
+    display:flex !important;
+  }
+
+  /* Mapa a pantalla completa */
+  body.sidebar-collapsed #map{
+    position:fixed !important;
+    inset:0 !important;
+
+    width:100vw !important;
+    height:100vh !important;
+    min-height:100vh !important;
+
+    z-index:2500 !important;
+  }
+
+  .topbar{
+    display:none !important;
+  }
+}
+
+@media(min-width:901px){
+
+  #sidebar-toggle,
+  #sidebar-restore{
+    display:none !important;
+  }
+}
