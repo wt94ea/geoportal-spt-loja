@@ -214,8 +214,23 @@ button.secondary{background:#0f172a;border:1px solid var(--line)}
 .data-row strong{color:#e5e7eb}
 @media(max-width:900px){
   body{overflow:auto}
-  .shell{grid-template-columns:1fr;grid-template-rows:auto 64vh;height:auto}
-  .sidebar{height:auto;max-height:none}
-  #map{height:64vh}
-  .topbar{left:14px;top:auto;bottom:14px}
+
+  .shell{
+    grid-template-columns:1fr;
+    grid-template-rows:auto 64vh;
+    height:auto;
+  }
+
+  .sidebar{
+    height:auto;
+    max-height:none;
+  }
+
+  #map{
+    height:64vh;
+  }
+
+  .topbar{
+    display:none;
+  }
 }
