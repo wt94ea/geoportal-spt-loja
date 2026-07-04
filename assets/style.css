@@ -213,8 +213,85 @@ button.secondary{background:#0f172a;border:1px solid var(--line)}
 .data-row:last-child{border-bottom:0}
 .data-row strong{color:#e5e7eb}
   /* Botón para alternar panel y mapa en dispositivos móviles */
-.mobile-toggle{
+}
+/* Centrado de la interfaz */
+.brand{
+  position:relative;
+  text-align:center;
+}
+
+.brand img{
+  margin:0 auto 16px auto;
+}
+
+.brand h1,
+.brand p,
+.card h2,
+.note{
+  text-align:center;
+}
+
+.badges{
+  justify-content:center;
+}
+
+.kpi{
+  text-align:center;
+}
+
+.card label{
+  text-align:center;
+}
+
+select{
+  text-align:center;
+  text-align-last:center;
+}
+
+input{
+  text-align:center;
+}
+
+/* Botones para ocultar y recuperar el panel */
+.sidebar-toggle,
+.sidebar-restore{
+  align-items:center;
+  justify-content:center;
+  width:44px !important;
+  height:44px;
+  padding:0;
+  border-radius:50%;
+  color:#f07f45;
+  background:rgba(15,23,42,.94);
+  border:1px solid rgba(240,127,69,.65);
+  box-shadow:0 10px 28px rgba(0,0,0,.35);
+}
+
+.sidebar-toggle svg,
+.sidebar-restore svg{
+  width:23px;
+  height:23px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2.3;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.sidebar-toggle{
   display:none;
+  position:absolute;
+  top:14px;
+  right:14px;
+  z-index:20;
+}
+
+.sidebar-restore{
+  display:none;
+  position:fixed;
+  top:16px;
+  left:16px;
+  z-index:4000;
 }
 @media(max-width:900px){
 
@@ -232,12 +309,10 @@ button.secondary{background:#0f172a;border:1px solid var(--line)}
   }
 
   .sidebar{
-    display:flex;
     width:100%;
     height:auto;
-    min-height:100vh;
     max-height:none;
-    padding-bottom:90px;
+    padding-bottom:36px;
   }
 
   #map{
@@ -251,48 +326,29 @@ button.secondary{background:#0f172a;border:1px solid var(--line)}
     display:none;
   }
 
-  .mobile-toggle{
+  .sidebar-toggle{
     display:flex;
-    align-items:center;
-    justify-content:center;
-
-    position:fixed;
-    right:16px;
-    bottom:18px;
-    z-index:3000;
-
-    width:auto !important;
-    min-width:130px;
-    padding:13px 20px;
-
-    border:1px solid rgba(255,255,255,.22);
-    border-radius:999px;
-
-    background:linear-gradient(135deg, #f07f45, #d96b35);
-    color:#ffffff;
-
-    font-size:15px;
-    font-weight:750;
-
-    box-shadow:0 12px 35px rgba(0,0,0,.38);
-    backdrop-filter:blur(10px);
   }
 
-  /* Modo mapa completo */
-  body.map-mode{
+  /* Mapa a pantalla completa */
+  body.sidebar-collapsed{
     overflow:hidden;
   }
 
-  body.map-mode .shell{
-    height:100vh;
-  }
-
-  body.map-mode .sidebar{
+  body.sidebar-collapsed .sidebar{
     display:none;
   }
 
-  body.map-mode #map{
+  body.sidebar-collapsed #map{
+    position:fixed;
+    inset:0;
+    z-index:2500;
+    width:100vw;
     height:100vh;
     min-height:100vh;
+  }
+
+  body.sidebar-collapsed .sidebar-restore{
+    display:flex;
   }
 }
