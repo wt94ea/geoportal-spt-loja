@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="42" viewBox="0 0 180 42">
+<defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#38bdf8"/><stop offset="1" stop-color="#22c55e"/></linearGradient></defs>
+<rect x="1" y="1" width="40" height="40" rx="10" fill="#0f172a" stroke="url(#g)" stroke-width="2"/>
+<path d="M12 28 L20 10 L28 28 M16 21 H24" fill="none" stroke="url(#g)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="50" y="18" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#e5e7eb">GEOARQUITEC</text>
+<text x="50" y="32" font-family="Arial, sans-serif" font-size="10" fill="#94a3b8">SPT INTELLIGENCE</text>
+</svg>
