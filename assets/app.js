@@ -3,27 +3,61 @@ const DATA_URL = 'data/spt_puntos.geojson';
 
 const map = L.map('map', { zoomControl: true, preferCanvas: true }).setView([-4.0, -79.2], 11);
 
-const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 20,
-  attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+// Mapa claro técnico, recomendado como base principal
+const claroTecnico = L.tileLayer(
+  'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+  {
+    maxZoom: 20,
+    subdomains: 'abcd',
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+    detectRetina: true,
+    updateWhenIdle: true,
+    keepBuffer: 4
+  }
+).addTo(map);
 
-const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-  maxZoom: 17,
-  attribution: '&copy; OpenTopoMap contributors'
-});
+// OpenStreetMap estándar
+const osm = L.tileLayer(
+  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {
+    maxZoom: 20,
+    attribution: '&copy; OpenStreetMap contributors',
+    detectRetina: true,
+    updateWhenIdle: true,
+    keepBuffer: 4
+  }
+);
 
-const imagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-  maxZoom: 19,
-  attribution: 'Tiles &copy; Esri'
-});
+// Satélite Esri
+const satelite = L.tileLayer(
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  {
+    maxZoom: 19,
+    attribution: 'Tiles &copy; Esri',
+    updateWhenIdle: true,
+    keepBuffer: 4
+  }
+);
+
+// Topográfico Esri
+const topografico = L.tileLayer(
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+  {
+    maxZoom: 19,
+    attribution: 'Tiles &copy; Esri',
+    updateWhenIdle: true,
+    keepBuffer: 4
+  }
+);
 
 L.control.layers({
+  'Claro técnico': claroTecnico,
   'OpenStreetMap': osm,
-  'Topográfico': topo,
-  'Satélite': imagery
-}, null, {collapsed:true}).addTo(map);
-
+  'Satélite': satelite,
+  'Topográfico': topografico
+}, null, {
+  collapsed: true
+}).addTo(map);
 let rawData = null;
 let geoLayer = null;
 let currentMetric = 'capacidad_portante_kg_cm2';
