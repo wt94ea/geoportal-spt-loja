@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Geoportal Geotécnico SPT - Loja</title>
+  <meta name="description" content="Geoportal geotécnico SPT con puntos, N60, capacidad portante, humedad, SUCS y nivel freático." />
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIINfQpPo5Cj8rzw4slXvcuHDsc8dCsQyM="
+    crossorigin="" />
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <main class="app">
+    <aside class="sidebar">
+      <section class="brand">
+        <h1>Geoportal Geotécnico SPT</h1>
+        <p>Visualización técnica de sondeos SPT para planificación, cimentaciones y análisis geoespacial en Loja.</p>
+      </section>
+
+      <section class="card">
+        <h2>Indicadores rápidos</h2>
+        <div class="grid">
+          <div class="metric"><span class="label">Puntos visibles</span><span id="total-points" class="value">0</span></div>
+          <div class="metric"><span class="label">N60 promedio</span><span id="avg-n60" class="value">-</span></div>
+          <div class="metric"><span class="label">Cap. portante prom.</span><span id="avg-cp" class="value">-</span></div>
+          <div class="metric"><span class="label">Humedad prom.</span><span id="avg-h" class="value">-</span></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Filtros</h2>
+        <label for="metric-select">Variable de simbología</label>
+        <select id="metric-select">
+          <option value="capacidad_kg_cm2">Capacidad portante kg/cm²</option>
+          <option value="n60">N60</option>
+          <option value="humedad_pct">Humedad %</option>
+        </select>
+
+        <label for="sucs-filter">Clasificación SUCS</label>
+        <select id="sucs-filter">
+          <option value="TODOS">Todos</option>
+        </select>
+
+        <label for="nf-filter">Nivel freático</label>
+        <select id="nf-filter">
+          <option value="TODOS">Todos</option>
+          <option value="Sí">Sí</option>
+          <option value="No">No</option>
+        </select>
+
+        <label></label>
+        <button id="reset-btn" class="secondary">Restablecer filtros</button>
+      </section>
+
+      <section class="card">
+        <h2 id="legend-title">Leyenda</h2>
+        <div id="legend-rows"></div>
+      </section>
+
+      <section class="card">
+        <h2>Cómo usarlo</h2>
+        <p class="note">
+          Este sitio carga el archivo <strong>data/spt_puntos.geojson</strong>.
+          Reemplaza los datos demo por tus sondeos reales. Para web, usa coordenadas geográficas
+          <strong>WGS84 EPSG:4326</strong>: longitud, latitud. Si tus puntos están en UTM 17S, expórtalos desde ArcGIS Pro a GeoJSON proyectando a WGS84.
+        </p>
+      </section>
+    </aside>
+
+    <section id="map" aria-label="Mapa de puntos SPT"></section>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

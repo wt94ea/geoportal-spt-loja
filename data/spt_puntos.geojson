@@ -1,0 +1,126 @@
+{
+  "type": "FeatureCollection",
+  "name": "spt_puntos_demo",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "DEMO_001",
+        "barrio": "Punzara",
+        "parroquia": "Sucre",
+        "profundidad_m": 2.0,
+        "n60": 18,
+        "capacidad_kg_cm2": 1.35,
+        "humedad_pct": 28.4,
+        "sucs": "CL",
+        "aashto": "A-6",
+        "nivel_freatico": "No",
+        "tipo_suelo": "Arcilla de baja plasticidad",
+        "cimentacion": "Zapata aislada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -79.2105,
+          -4.0152
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "DEMO_002",
+        "barrio": "Jipiro Alto",
+        "parroquia": "El Valle",
+        "profundidad_m": 2.0,
+        "n60": 32,
+        "capacidad_kg_cm2": 2.1,
+        "humedad_pct": 21.6,
+        "sucs": "SM",
+        "aashto": "A-2-4",
+        "nivel_freatico": "No",
+        "tipo_suelo": "Arena limosa",
+        "cimentacion": "Zapata corrida"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -79.1986,
+          -3.9705
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "DEMO_003",
+        "barrio": "Ciudad Victoria",
+        "parroquia": "Punzara",
+        "profundidad_m": 2.5,
+        "n60": 12,
+        "capacidad_kg_cm2": 0.95,
+        "humedad_pct": 34.9,
+        "sucs": "CH",
+        "aashto": "A-7-6",
+        "nivel_freatico": "Sí",
+        "tipo_suelo": "Arcilla de alta plasticidad",
+        "cimentacion": "Revisar mejoramiento"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -79.2278,
+          -4.0236
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "DEMO_004",
+        "barrio": "La Argelia",
+        "parroquia": "San Sebastián",
+        "profundidad_m": 2.0,
+        "n60": 25,
+        "capacidad_kg_cm2": 1.75,
+        "humedad_pct": 24.2,
+        "sucs": "ML",
+        "aashto": "A-4",
+        "nivel_freatico": "No",
+        "tipo_suelo": "Limo de baja plasticidad",
+        "cimentacion": "Zapata aislada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -79.204,
+          -4.0078
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "DEMO_005",
+        "barrio": "El Plateado",
+        "parroquia": "Carigán",
+        "profundidad_m": 2.5,
+        "n60": 40,
+        "capacidad_kg_cm2": 2.65,
+        "humedad_pct": 18.8,
+        "sucs": "SC",
+        "aashto": "A-2-6",
+        "nivel_freatico": "No",
+        "tipo_suelo": "Arena arcillosa",
+        "cimentacion": "Zapata corrida"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -79.2209,
+          -3.9469
+        ]
+      }
+    }
+  ]
+}

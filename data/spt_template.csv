@@ -1,0 +1,6 @@
+id,lat,lon,barrio,parroquia,profundidad_m,n60,capacidad_kg_cm2,humedad_pct,sucs,aashto,nivel_freatico,tipo_suelo,cimentacion
+DEMO_001,-4.0152,-79.2105,Punzara,Sucre,2.0,18,1.35,28.4,CL,A-6,No,Arcilla de baja plasticidad,Zapata aislada
+DEMO_002,-3.9705,-79.1986,Jipiro Alto,El Valle,2.0,32,2.1,21.6,SM,A-2-4,No,Arena limosa,Zapata corrida
+DEMO_003,-4.0236,-79.2278,Ciudad Victoria,Punzara,2.5,12,0.95,34.9,CH,A-7-6,Sí,Arcilla de alta plasticidad,Revisar mejoramiento
+DEMO_004,-4.0078,-79.204,La Argelia,San Sebastián,2.0,25,1.75,24.2,ML,A-4,No,Limo de baja plasticidad,Zapata aislada
+DEMO_005,-3.9469,-79.2209,El Plateado,Carigán,2.5,40,2.65,18.8,SC,A-2-6,No,Arena arcillosa,Zapata corrida

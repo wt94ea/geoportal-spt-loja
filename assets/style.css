@@ -1,0 +1,40 @@
+:root{
+  --bg:#0f172a;
+  --panel:#111827;
+  --card:#1f2937;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
+  --accent:#38bdf8;
+  --line:#374151;
+  --white:#ffffff;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+.app{display:grid;grid-template-columns:360px 1fr;height:100vh;width:100vw}
+.sidebar{background:var(--panel);border-right:1px solid var(--line);padding:18px;overflow:auto}
+.brand h1{font-size:22px;line-height:1.1;margin:0 0 8px}
+.brand p{font-size:13px;color:var(--muted);margin:0 0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+.card h2{font-size:15px;margin:0 0 12px;color:var(--white)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.metric{background:#111827;border:1px solid var(--line);border-radius:12px;padding:10px}
+.metric .label{font-size:11px;color:var(--muted);display:block}
+.metric .value{font-size:20px;font-weight:700;margin-top:3px;color:var(--accent)}
+label{font-size:12px;color:var(--muted);display:block;margin:10px 0 6px}
+select,button,input{width:100%;border-radius:10px;border:1px solid var(--line);background:#0b1220;color:var(--text);padding:10px;font-size:14px}
+button{cursor:pointer;font-weight:650;background:#0ea5e9;color:#08111f;border:none}
+button.secondary{background:#111827;color:var(--text);border:1px solid var(--line)}
+.legend-row{display:flex;align-items:center;gap:8px;font-size:12px;margin:7px 0;color:var(--muted)}
+.swatch{width:14px;height:14px;border-radius:50%;display:inline-block;border:1px solid rgba(255,255,255,.5)}
+.note{font-size:12px;color:var(--muted);line-height:1.45}
+#map{height:100vh;width:100%}
+.popup h3{margin:0 0 6px;font-size:15px}
+.popup table{border-collapse:collapse;width:100%;font-size:12px}
+.popup td{padding:3px 4px;border-bottom:1px solid #e5e7eb}
+.popup td:first-child{font-weight:700;color:#334155}
+.badge{display:inline-block;background:#e0f2fe;color:#075985;border-radius:999px;padding:2px 8px;font-size:11px;margin-bottom:6px}
+@media(max-width:850px){
+  .app{grid-template-columns:1fr;grid-template-rows:42vh 58vh}
+  .sidebar{height:42vh;border-right:0;border-bottom:1px solid var(--line)}
+  #map{height:58vh}
+}
