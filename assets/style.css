@@ -1,24 +1,35 @@
 
 :root{
-  --bg:#050816;
-  --bg2:#07111f;
-  --panel:rgba(10, 18, 32, .92);
-  --panel2:rgba(15, 23, 42, .88);
-  --line:rgba(148,163,184,.22);
-  --text:#e5e7eb;
-  --muted:#94a3b8;
-  --accent:#38bdf8;
-  --accent2:#22c55e;
+  --bg:#111827;
+  --bg2:#243247;
+
+  --panel:rgba(24,34,51,.96);
+  --panel2:rgba(36,50,71,.94);
+
+  --line:rgba(240,127,69,.28);
+
+  --text:#f8fafc;
+  --muted:#b7c0cc;
+
+  --accent:#f07f45;
+  --accent2:#f4a261;
+
   --danger:#ef4444;
   --warn:#f59e0b;
-  --card:#0f172a;
-  --white:#fff;
+
+  --card:#182233;
+  --white:#ffffff;
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 body{
   font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  background:radial-gradient(circle at top left, #0b2a47 0, #050816 42%, #020617 100%);
+  background:linear-gradient(
+    135deg,
+    #243247 0%,
+    #172133 48%,
+    #0b1220 100%
+  );
   color:var(--text);
   overflow:hidden;
 }
@@ -58,12 +69,22 @@ body{
   gap:10px;
   font-size:13px;
 }
-.dot{width:8px;height:8px;border-radius:50%;background:var(--accent2);box-shadow:0 0 18px var(--accent2)}
+.dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--accent);
+  box-shadow:0 0 18px rgba(240,127,69,.85);
+}
 .brand{
-  border:1px solid var(--line);
+  border:1px solid rgba(240,127,69,.35);
   border-radius:18px;
   padding:16px;
-  background:linear-gradient(135deg, rgba(14,165,233,.13), rgba(34,197,94,.06));
+  background:linear-gradient(
+    135deg,
+    rgba(240,127,69,.16),
+    rgba(36,50,71,.20)
+  );
 }
 .brand img{width:180px;max-width:100%;display:block;margin-bottom:14px}
 .brand h1{font-size:24px;line-height:1.05;margin:0 0 8px;letter-spacing:-.03em}
@@ -78,7 +99,10 @@ body{
   font-size:11px;
   font-weight:650;
 }
-.badge.green{border-color:rgba(34,197,94,.45);color:#bbf7d0}
+.badge.green{
+  border-color:rgba(240,127,69,.55);
+  color:#ffd4bf;
+}
 .card{
   background:var(--panel);
   border:1px solid var(--line);
@@ -116,10 +140,18 @@ select,input,button{
 select:focus,input:focus{border-color:rgba(56,189,248,.7);box-shadow:0 0 0 3px rgba(56,189,248,.12)}
 button{
   background:linear-gradient(135deg, #0284c7, #10b981);
+ button{
+  background:linear-gradient(135deg, #f07f45, #d96b35);
   border:0;
-  color:white;
+  color:#ffffff;
   font-weight:750;
   cursor:pointer;
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+
+button:hover{
+  transform:translateY(-1px);
+  box-shadow:0 10px 25px rgba(240,127,69,.25);
 }
 button.secondary{background:#0f172a;border:1px solid var(--line)}
 .controls-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
