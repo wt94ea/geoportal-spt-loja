@@ -16,8 +16,18 @@
   <link rel="stylesheet" href="assets/style.css?v=leaflet-fix-1"/>
 </head>
 <body>
+  
+  <button
+  id="mobile-toggle"
+  class="mobile-toggle"
+  type="button"
+  aria-controls="sidebar"
+  aria-expanded="true"
+>
+  Ver mapa
+</button>
   <div class="shell">
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
       <section class="brand">
         <img src="assets/logo-geoarquitec.png?v=1" alt="Geoarquitec"/>
         <h1>Geoportal Geotécnico SPT</h1>
@@ -84,10 +94,9 @@
         <label for="search-code">Buscar código o SUCS</label>
         <input id="search-code" type="search" placeholder="Ej.: SPT-024 o CL"/>
 
-        <div class="controls-grid" style="margin-top:12px">
-          <button id="reset-btn" class="secondary">Restablecer</button>
-          <button id="download-btn">Descargar filtro</button>
-        </div>
+        <div style="margin-top:12px">
+  <button id="reset-btn" class="secondary">Restablecer filtros</button>
+</div>
       </section>
 
       <section class="card">
@@ -127,3 +136,4 @@
   <script src="assets/app.js?v=leaflet-fix-1"></script>
 </body>
 </html>
+
