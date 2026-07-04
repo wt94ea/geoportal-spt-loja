@@ -127,8 +127,26 @@ button.secondary{background:#0f172a;border:1px solid var(--line)}
 .swatch{width:14px;height:14px;border-radius:50%;display:inline-block;border:1px solid rgba(255,255,255,.55)}
 .note{font-size:12px;color:var(--muted);line-height:1.5;margin:0}
 .note strong{color:#e2e8f0}
-#map{height:100vh;width:100%}
-.leaflet-container{background:#020617}
+#map{
+  height:100vh;
+  width:100%;
+  min-width:0;
+}
+
+.leaflet-container{
+  background:#f8fafc !important;
+}
+
+/* Protección para que las teselas no sean deformadas
+   por otros estilos globales */
+.leaflet-container img.leaflet-tile{
+  max-width:none !important;
+  max-height:none !important;
+  transition:none !important;
+  filter:none !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+}
 .leaflet-popup-content-wrapper{
   border-radius:16px;
   background:#f8fafc;
@@ -168,8 +186,4 @@ button.secondary{background:#0f172a;border:1px solid var(--line)}
   .sidebar{height:auto;max-height:none}
   #map{height:64vh}
   .topbar{left:14px;top:auto;bottom:14px}
-}
-#map,
-.leaflet-container {
-  background: #f8fafc !important;
 }
