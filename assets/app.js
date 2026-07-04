@@ -320,47 +320,68 @@ fetch(DATA_URL)
 });
 searchInput.addEventListener('input', render);
 el('reset-btn').addEventListener('click', resetFilters);
-const mobileToggle = el('mobile-toggle');
 
-if (mobileToggle) {
-  mobileToggle.addEventListener('click', () => {
-    const mapMode = document.body.classList.toggle('map-mode');
+const sidebarToggle = el('sidebar-toggle');
+const sidebarRestore = el('sidebar-restore');
 
-    mobileToggle.textContent = mapMode
-      ? 'Ver panel'
-      : 'Ver mapa';
+function cambiarVistaMovil(mostrarMapa) {
+  // En escritorio el panel siempre permanece visible
+  if (window.innerWidth > 900) {
+    mostrarMapa = false;
+  }
 
-    mobileToggle.setAttribute(
+  document.body.classList.toggle(
+    'sidebar-collapsed',
+    mostrarMapa
+  );
+
+  if (sidebarToggle) {
+    sidebarToggle.setAttribute(
       'aria-expanded',
-      String(!mapMode)
+      String(!mostrarMapa)
     );
+  }
 
-    setTimeout(() => {
-      map.invalidateSize(true);
+  if (mostrarMapa) {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'instant'
+    });
+  }
 
-      if (
-        mapMode &&
-        geoLayer &&
-        geoLayer.getBounds &&
-        geoLayer.getBounds().isValid()
-      ) {
-        map.fitBounds(geoLayer.getBounds().pad(0.12), {
-          animate: false
-        });
-      }
-    }, 250);
+  // Leaflet debe recalcular su tamaño después de ocultar el panel
+  setTimeout(() => {
+    map.invalidateSize(true);
+
+    if (
+      mostrarMapa &&
+      geoLayer &&
+      geoLayer.getBounds &&
+      geoLayer.getBounds().isValid()
+    ) {
+      map.fitBounds(
+        geoLayer.getBounds().pad(0.12),
+        { animate: false }
+      );
+    }
+  }, 250);
+}
+
+if (sidebarToggle) {
+  sidebarToggle.addEventListener('click', () => {
+    cambiarVistaMovil(true);
+  });
+}
+
+if (sidebarRestore) {
+  sidebarRestore.addEventListener('click', () => {
+    cambiarVistaMovil(false);
   });
 }
 
 window.addEventListener('resize', () => {
   if (window.innerWidth > 900) {
-    document.body.classList.remove('map-mode');
-
-    if (mobileToggle) {
-      mobileToggle.textContent = 'Ver mapa';
-      mobileToggle.setAttribute('aria-expanded', 'true');
-    }
-
-    setTimeout(() => map.invalidateSize(true), 150);
+    cambiarVistaMovil(false);
   }
 });
