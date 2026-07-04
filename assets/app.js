@@ -325,7 +325,6 @@ const sidebarToggle = el('sidebar-toggle');
 const sidebarRestore = el('sidebar-restore');
 
 function cambiarVistaMovil(mostrarMapa) {
-  // En escritorio el panel siempre permanece visible
   if (window.innerWidth > 900) {
     mostrarMapa = false;
   }
@@ -346,11 +345,10 @@ function cambiarVistaMovil(mostrarMapa) {
     window.scrollTo({
       top: 0,
       left: 0,
-      behavior: 'instant'
+      behavior: 'auto'
     });
   }
 
-  // Leaflet debe recalcular su tamaño después de ocultar el panel
   setTimeout(() => {
     map.invalidateSize(true);
 
