@@ -320,3 +320,47 @@ fetch(DATA_URL)
 });
 searchInput.addEventListener('input', render);
 el('reset-btn').addEventListener('click', resetFilters);
+const mobileToggle = el('mobile-toggle');
+
+if (mobileToggle) {
+  mobileToggle.addEventListener('click', () => {
+    const mapMode = document.body.classList.toggle('map-mode');
+
+    mobileToggle.textContent = mapMode
+      ? 'Ver panel'
+      : 'Ver mapa';
+
+    mobileToggle.setAttribute(
+      'aria-expanded',
+      String(!mapMode)
+    );
+
+    setTimeout(() => {
+      map.invalidateSize(true);
+
+      if (
+        mapMode &&
+        geoLayer &&
+        geoLayer.getBounds &&
+        geoLayer.getBounds().isValid()
+      ) {
+        map.fitBounds(geoLayer.getBounds().pad(0.12), {
+          animate: false
+        });
+      }
+    }, 250);
+  });
+}
+
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 900) {
+    document.body.classList.remove('map-mode');
+
+    if (mobileToggle) {
+      mobileToggle.textContent = 'Ver mapa';
+      mobileToggle.setAttribute('aria-expanded', 'true');
+    }
+
+    setTimeout(() => map.invalidateSize(true), 150);
+  }
+});
