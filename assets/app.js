@@ -58,6 +58,24 @@ L.control.layers({
 }, null, {
   collapsed: true
 }).addTo(map);
+// Corrección de render para evitar cuadros negros o teselas incompletas
+function corregirRenderMapa() {
+  map.invalidateSize(true);
+}
+
+window.addEventListener('load', () => {
+  setTimeout(corregirRenderMapa, 300);
+  setTimeout(corregirRenderMapa, 1000);
+  setTimeout(corregirRenderMapa, 2000);
+});
+
+window.addEventListener('resize', corregirRenderMapa);
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    setTimeout(corregirRenderMapa, 300);
+  }
+});
 let rawData = null;
 let geoLayer = null;
 let currentMetric = 'capacidad_portante_kg_cm2';
