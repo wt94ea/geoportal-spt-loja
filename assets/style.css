@@ -169,3 +169,7 @@ button.secondary{background:#0f172a;border:1px solid var(--line)}
   #map{height:64vh}
   .topbar{left:14px;top:auto;bottom:14px}
 }
+#map,
+.leaflet-container {
+  background: #f8fafc !important;
+}
