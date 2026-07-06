@@ -52,23 +52,40 @@ const topografico = L.tileLayer(
 ).addTo(map);
 
 // Panel exclusivo para las superficies interpoladas.
-// Queda debajo de los puntos SPT.
 map.createPane('interpolacionesPane');
 
 map.getPane('interpolacionesPane').style.zIndex = 350;
 map.getPane('interpolacionesPane').style.pointerEvents = 'none';
 
 // Interpolación N60 en mosaicos XYZ
+// Extensión de la interpolación N60 en Loja
+const boundsN60 = L.latLngBounds(
+  [-4.043034, -79.250782],
+  [-3.936663, -79.187002]
+);
+
+// Interpolación N60 en mosaicos XYZ
 const interpolacionN60 = L.tileLayer(
   'tiles/n60/{z}/{x}/{y}.png',
   {
-    minZoom: 10,
-    maxZoom: 18,
+    // Permite activar la capa aun cuando el mapa esté alejado
+    minZoom: 0,
+
+    // Los mosaicos reales existen desde zoom 10 hasta zoom 16
+    minNativeZoom: 10,
     maxNativeZoom: 16,
+
+    // Permite acercarse más reutilizando las teselas disponibles
+    maxZoom: 20,
+
+    bounds: boundsN60,
+    noWrap: true,
+
     opacity: 0.72,
     pane: 'interpolacionesPane',
     updateWhenIdle: true,
     keepBuffer: 4,
+
     attribution: 'Geoarquitec · Interpolación N60'
   }
 );
@@ -154,10 +171,20 @@ map.on('overlayadd', (event) => {
   }
 });
 
-map.on('overlayremove', (event) => {
+map.on('overlayadd', (event) => {
   if (event.layer === interpolacionN60) {
-    interpolacionN60Activa = false;
+    interpolacionN60Activa = true;
     updateLegend();
+
+    map.fitBounds(boundsN60, {
+      padding: [25, 25],
+      maxZoom: 14,
+      animate: true
+    });
+
+    setTimeout(() => {
+      map.invalidateSize(true);
+    }, 300);
   }
 });
 const el = (id) => document.getElementById(id);
