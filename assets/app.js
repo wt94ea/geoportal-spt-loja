@@ -311,27 +311,32 @@ function updateLegend() {
 
   if (!legendBox || !title || !rows) return;
 
-  // Ocultar la leyenda cuando N60 no está activada
+  // Solo mostrar cuando la interpolación N60 esté activa
   if (!interpolacionN60Activa) {
     legendBox.style.display = 'none';
     return;
   }
 
   legendBox.style.display = 'block';
-  title.textContent = 'Interpolación N60';
+  title.textContent = 'N60 predicha';
 
+  // Colores iguales a la simbología del raster de ArcGIS Pro
   const items = [
-    ['#ef4444', '< 10 · Muy baja'],
-    ['#f97316', '10 – 19 · Baja'],
-    ['#f59e0b', '20 – 29 · Media'],
-    ['#22c55e', '30 – 39 · Alta'],
-    ['#38bdf8', '≥ 40 · Muy alta']
+    ['#F5F500', '< 10 · Muy baja resistencia'],
+    ['#F5B800', '10 – 19 · Baja resistencia'],
+    ['#F57A00', '20 – 29 · Resistencia media'],
+    ['#F53D00', '30 – 39 · Alta resistencia'],
+    ['#F50000', '≥ 40 · Muy alta resistencia']
   ];
 
   rows.innerHTML = items.map(([color, text]) => `
     <div class="legend-row">
-      <span class="swatch" style="background:${color}"></span>
-      <span>${text}</span>
+      <span
+        class="swatch"
+        style="background:${color}"
+        aria-hidden="true"
+      ></span>
+      <span class="legend-label">${text}</span>
     </div>
   `).join('');
 }
