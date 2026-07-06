@@ -13,7 +13,7 @@
   integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
   crossorigin=""
 />
-  <link rel="stylesheet" href="assets/style.css?v=mobile-fix-3"/>
+  <link rel="stylesheet" href="assets/style.css?v=n60-7"/>
 </head>
 <body>
   
@@ -36,11 +36,7 @@
   visualización de información geotécnica. Los datos publicados han sido
   anonimizados para proteger la identidad de clientes y proyectos.
 </p>
-        <div class="badges">
-         <span class="badge green">Datos anonimizados</span>
-<span class="badge">WGS84 · Web GIS</span>
-<span class="badge">Inteligencia geotécnica</span>
-        </div>
+        
       </section>
 
       <section class="card">
@@ -98,15 +94,11 @@
 </div>
       </section>
 
-      <section class="card">
-        <h2 id="legend-title">Leyenda</h2>
-        <div id="legend-rows"></div>
-      </section>
 
-      <section class="card">
-        <h2>Registros visibles</h2>
-        <div class="data-panel" id="data-list"></div>
-      </section>
+      <details class="card records-card">
+  <summary>Registros visibles</summary>
+  <div class="data-panel" id="data-list"></div>
+</details>
 
       <section class="card">
         <h2>Privacidad técnica</h2>
@@ -117,29 +109,38 @@
       </section>
     </aside>
 
-    <section id="map" aria-label="Mapa geotécnico SPT"></section>
+        <section id="map" aria-label="Mapa geotécnico SPT"></section>
 
-    <div class="topbar">
-  <div class="status-pill">
-    <span class="dot"></span>
-    Geoarquitec · Plataforma geotécnica
+  </div><!-- Cierre de .shell -->
+
+  <div class="topbar">
+    <div class="status-pill">
+      <span class="dot"></span>
+      Geoarquitec · Plataforma geotécnica
+    </div>
+
+    <div class="status-pill">
+      geoportal.geoarquitec.com
+    </div>
   </div>
 
-  <div class="status-pill">
-    geoportal.geoarquitec.com
-  </div>
-</div>
-<button
+  <button
   id="sidebar-restore"
+  class="sidebar-restore"
   type="button"
   aria-label="Mostrar panel de análisis"
   title="Mostrar panel"
 >
   <span aria-hidden="true">☰</span>
 </button>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script src="assets/app.js?v=mobile-fix-3"></script>
+
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""
+></script>
+
+<script src="assets/app.js?v=n60-7"></script>
+
 </body>
 </html>
-

@@ -139,8 +139,6 @@ select,input,button{
 }
 select:focus,input:focus{border-color:rgba(56,189,248,.7);box-shadow:0 0 0 3px rgba(56,189,248,.12)}
 button{
-  background:linear-gradient(135deg, #0284c7, #10b981);
- button{
   background:linear-gradient(135deg, #f07f45, #d96b35);
   border:0;
   color:#ffffff;
@@ -148,8 +146,15 @@ button{
   cursor:pointer;
   transition:transform .18s ease, box-shadow .18s ease;
 }
-
 button:hover{
+  transform:translateY(-1px);
+  box-shadow:0 10px 25px rgba(240,127,69,.25);
+}
+
+button.secondary{
+  background:#0f172a;
+  border:1px solid var(--line);
+}
   transform:translateY(-1px);
   box-shadow:0 10px 25px rgba(240,127,69,.25);
 }
@@ -213,7 +218,6 @@ button.secondary{background:#0f172a;border:1px solid var(--line)}
 .data-row:last-child{border-bottom:0}
 .data-row strong{color:#e5e7eb}
   /* Botón para alternar panel y mapa en dispositivos móviles */
-}
 /* Centrado de la interfaz */
 .brand{
   position:relative;
@@ -472,5 +476,89 @@ input{
   #sidebar-toggle,
   #sidebar-restore{
     display:none !important;
+  }
+}
+/* =====================================================
+   LEYENDA CARTOGRÁFICA DE LA INTERPOLACIÓN N60
+   ===================================================== */
+
+.map-legend{
+  display:none;
+  width:285px;
+  padding:14px;
+
+  background:rgba(15,23,42,.95);
+  color:#f8fafc;
+
+  border:1px solid rgba(240,127,69,.55);
+  border-radius:12px;
+
+  box-shadow:0 14px 40px rgba(0,0,0,.42);
+  backdrop-filter:blur(10px);
+}
+
+.map-legend h4{
+  margin:0 0 12px;
+  padding-bottom:8px;
+
+  border-bottom:1px solid rgba(255,255,255,.16);
+
+  color:#ffffff;
+  font-size:13px;
+  font-weight:800;
+  text-align:center;
+  text-transform:uppercase;
+  letter-spacing:.07em;
+}
+
+.map-legend .legend-row{
+  display:grid;
+  grid-template-columns:38px 1fr;
+  align-items:center;
+  gap:10px;
+
+  margin:0;
+  padding:4px 0;
+
+  color:#e5e7eb;
+  font-size:12px;
+  line-height:1.25;
+}
+
+.map-legend .swatch{
+  display:block;
+
+  width:38px;
+  height:22px;
+
+  border:1px solid rgba(255,255,255,.55);
+  border-radius:2px;
+  box-shadow:none;
+}
+
+.map-legend .legend-label{
+  display:block;
+  text-align:left;
+}
+
+/* Adaptación para teléfonos */
+@media(max-width:900px){
+
+  .map-legend{
+    width:230px;
+    max-width:calc(100vw - 32px);
+    padding:11px;
+    margin-bottom:48px !important;
+  }
+
+  .map-legend .legend-row{
+    grid-template-columns:31px 1fr;
+    gap:8px;
+    font-size:11px;
+  }
+
+  .map-legend .swatch{
+    width:31px;
+    height:19px;
   }
 }
