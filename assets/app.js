@@ -51,14 +51,48 @@ const topografico = L.tileLayer(
   }
 ).addTo(map);
 
-L.control.layers({
+// Panel exclusivo para las superficies interpoladas.
+// Queda debajo de los puntos SPT.
+map.createPane('interpolacionesPane');
+
+map.getPane('interpolacionesPane').style.zIndex = 350;
+map.getPane('interpolacionesPane').style.pointerEvents = 'none';
+
+// Interpolación N60 en mosaicos XYZ
+const interpolacionN60 = L.tileLayer(
+  'tiles/n60/{z}/{x}/{y}.png',
+  {
+    minZoom: 10,
+    maxZoom: 18,
+    maxNativeZoom: 16,
+    opacity: 0.72,
+    pane: 'interpolacionesPane',
+    updateWhenIdle: true,
+    keepBuffer: 4,
+    attribution: 'Geoarquitec · Interpolación N60'
+  }
+);
+
+// Mapas base
+const mapasBase = {
   'Claro técnico': claroTecnico,
   'OpenStreetMap': osm,
   'Satélite': satelite,
   'Topográfico': topografico
-}, null, {
-  collapsed: true
-}).addTo(map);
+};
+
+// Capas técnicas activables
+const capasTematicas = {
+  'Interpolación N60': interpolacionN60
+};
+
+L.control.layers(
+  mapasBase,
+  capasTematicas,
+  {
+    collapsed: true
+  }
+).addTo(map);
 map.on('baselayerchange', () => {
   setTimeout(corregirRenderMapa, 250);
   setTimeout(corregirRenderMapa, 900);
