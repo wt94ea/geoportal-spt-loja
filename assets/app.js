@@ -93,6 +93,26 @@ L.control.layers(
     collapsed: true
   }
 ).addTo(map);
+// Leyenda flotante dentro del mapa
+const legendControl = L.control({
+  position: 'bottomright'
+});
+
+legendControl.onAdd = function () {
+  const div = L.DomUtil.create('div', 'map-legend');
+
+  div.innerHTML = `
+    <h4 id="legend-title">Interpolación N60</h4>
+    <div id="legend-rows"></div>
+  `;
+
+  L.DomEvent.disableClickPropagation(div);
+  L.DomEvent.disableScrollPropagation(div);
+
+  return div;
+};
+
+legendControl.addTo(map);
 map.on('baselayerchange', () => {
   setTimeout(corregirRenderMapa, 250);
   setTimeout(corregirRenderMapa, 900);
@@ -124,8 +144,22 @@ document.addEventListener('visibilitychange', () => {
 let rawData = null;
 let geoLayer = null;
 let currentMetric = 'capacidad_portante_kg_cm2';
+let interpolacionN60Activa = false;
 let indexByCode = new Map();
 
+map.on('overlayadd', (event) => {
+  if (event.layer === interpolacionN60) {
+    interpolacionN60Activa = true;
+    updateLegend();
+  }
+});
+
+map.on('overlayremove', (event) => {
+  if (event.layer === interpolacionN60) {
+    interpolacionN60Activa = false;
+    updateLegend();
+  }
+});
 const el = (id) => document.getElementById(id);
 const metricSelect = el('metric-select');
 const sucsSelect = el('sucs-filter');
@@ -243,24 +277,36 @@ function updateStats(features){
   const nfCount = features.filter(f => f.properties.nivel_freatico === 'Sí').length;
   el('nf-count').textContent = nfCount;
 }
-function updateLegend(metric){
+function updateLegend() {
+  const legendBox = document.querySelector('.map-legend');
   const title = el('legend-title');
   const rows = el('legend-rows');
-  let items = [];
-  if(metric === 'capacidad_portante_kg_cm2'){
-    title.textContent = 'Leyenda · Capacidad portante';
-    items = [['#ef4444','< 1.00 kg/cm²'],['#f97316','1.00 – 1.49'],['#f59e0b','1.50 – 1.99'],['#22c55e','2.00 – 2.49'],['#38bdf8','≥ 2.50']];
-  } else if(metric === 'n60'){
-    title.textContent = 'Leyenda · N60';
-    items = [['#ef4444','< 10 · Muy baja'],['#f97316','10 – 19 · Baja'],['#f59e0b','20 – 29 · Media'],['#22c55e','30 – 39 · Alta'],['#38bdf8','≥ 40 · Muy alta']];
-  } else if(metric === 'humedad_pct'){
-    title.textContent = 'Leyenda · Humedad natural';
-    items = [['#38bdf8','< 15 %'],['#22c55e','15 – 21.9 %'],['#f59e0b','22 – 29.9 %'],['#f97316','30 – 37.9 %'],['#ef4444','≥ 38 %']];
-  } else {
-    title.textContent = 'Leyenda · Elevación';
-    items = [['#38bdf8','< 1500 msnm'],['#22c55e','1500 – 1899'],['#f59e0b','1900 – 2199'],['#f97316','2200 – 2499'],['#ef4444','≥ 2500']];
+
+  if (!legendBox || !title || !rows) return;
+
+  // Ocultar la leyenda cuando N60 no está activada
+  if (!interpolacionN60Activa) {
+    legendBox.style.display = 'none';
+    return;
   }
-  rows.innerHTML = items.map(([c,t]) => `<div class="legend-row"><span class="swatch" style="background:${c}"></span>${t}</div>`).join('');
+
+  legendBox.style.display = 'block';
+  title.textContent = 'Interpolación N60';
+
+  const items = [
+    ['#ef4444', '< 10 · Muy baja'],
+    ['#f97316', '10 – 19 · Baja'],
+    ['#f59e0b', '20 – 29 · Media'],
+    ['#22c55e', '30 – 39 · Alta'],
+    ['#38bdf8', '≥ 40 · Muy alta']
+  ];
+
+  rows.innerHTML = items.map(([color, text]) => `
+    <div class="legend-row">
+      <span class="swatch" style="background:${color}"></span>
+      <span>${text}</span>
+    </div>
+  `).join('');
 }
 function updateList(features){
   const list = el('data-list');
@@ -298,8 +344,8 @@ function render(){
   }).addTo(map);
 
   updateStats(fc.features);
-  updateLegend(currentMetric);
-  updateList(fc.features);
+updateLegend();
+updateList(fc.features);
 
 if(fc.features.length){
   map.fitBounds(geoLayer.getBounds().pad(0.12), {
