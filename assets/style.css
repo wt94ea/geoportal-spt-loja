@@ -139,8 +139,6 @@ select,input,button{
 }
 select:focus,input:focus{border-color:rgba(56,189,248,.7);box-shadow:0 0 0 3px rgba(56,189,248,.12)}
 button{
-  background:linear-gradient(135deg, #0284c7, #10b981);
- button{
   background:linear-gradient(135deg, #f07f45, #d96b35);
   border:0;
   color:#ffffff;
@@ -148,8 +146,15 @@ button{
   cursor:pointer;
   transition:transform .18s ease, box-shadow .18s ease;
 }
-
 button:hover{
+  transform:translateY(-1px);
+  box-shadow:0 10px 25px rgba(240,127,69,.25);
+}
+
+button.secondary{
+  background:#0f172a;
+  border:1px solid var(--line);
+}
   transform:translateY(-1px);
   box-shadow:0 10px 25px rgba(240,127,69,.25);
 }
@@ -213,7 +218,6 @@ button.secondary{background:#0f172a;border:1px solid var(--line)}
 .data-row:last-child{border-bottom:0}
 .data-row strong{color:#e5e7eb}
   /* Botón para alternar panel y mapa en dispositivos móviles */
-}
 /* Centrado de la interfaz */
 .brand{
   position:relative;
