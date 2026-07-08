@@ -137,6 +137,27 @@ const capacidadPortantePredicha = L.tileLayer(
   }
 );
 
+// Incertidumbre o error estándar de capacidad portante
+const incertidumbreCapacidadPortante = L.tileLayer(
+  'tiles/capacidad_portante_error/{z}/{x}/{y}.png',
+  {
+    minZoom: 0,
+    minNativeZoom: 10,
+    maxNativeZoom: 16,
+    maxZoom: 20,
+
+    bounds: boundsN60,
+    noWrap: true,
+
+    opacity: 0.72,
+    pane: 'interpolacionesPane',
+    updateWhenIdle: true,
+    keepBuffer: 4,
+
+    attribution: 'Geoarquitec · Incertidumbre de capacidad portante'
+  }
+);
+
 // Mapas base
 const mapasBase = {
   'Claro técnico': claroTecnico,
@@ -149,7 +170,8 @@ const mapasBase = {
 const capasTematicas = {
   'N60 predicha': interpolacionN60,
   'Incertidumbre N60': incertidumbreN60,
-  'Capacidad portante predicha': capacidadPortantePredicha
+  'Capacidad portante predicha': capacidadPortantePredicha,
+  'Incertidumbre capacidad portante': incertidumbreCapacidadPortante
 };
 
 L.control.layers(
@@ -163,7 +185,8 @@ L.control.layers(
 const capasInterpoladas = [
   interpolacionN60,
   incertidumbreN60,
-  capacidadPortantePredicha
+  capacidadPortantePredicha,
+  incertidumbreCapacidadPortante
 ];
 // Leyenda flotante dentro del mapa
 const legendControl = L.control({
@@ -246,6 +269,11 @@ function obtenerTipoCapa(layer) {
   if (layer === interpolacionN60) return 'n60';
   if (layer === incertidumbreN60) return 'n60_error';
   if (layer === capacidadPortantePredicha) return 'capacidad_portante';
+
+  if (layer === incertidumbreCapacidadPortante) {
+    return 'capacidad_portante_error';
+  }
+
   return null;
 }
 
@@ -467,6 +495,17 @@ function updateLegend() {
         'Capacidad portante media',
         'Alta capacidad portante',
         'Muy alta capacidad portante'
+      ]
+    },
+
+    capacidad_portante_error: {
+      titulo: 'Incertidumbre capacidad portante',
+      etiquetas: [
+        'Muy baja incertidumbre',
+        'Baja incertidumbre',
+        'Incertidumbre media',
+        'Alta incertidumbre',
+        'Muy alta incertidumbre'
       ]
     }
   };
