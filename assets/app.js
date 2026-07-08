@@ -89,6 +89,122 @@ const interpolacionN60 = L.tileLayer(
     attribution: 'Geoarquitec · Interpolación N60'
   }
 );
+// Incertidumbre o error estándar de N60
+const incertidumbreN60 = L.tileLayer(
+  'tiles/n60_error/{z}/{x}/{y}.png',
+  {
+    // Permite activarla desde cualquier nivel de alejamiento
+    minZoom: 0,
+
+    // Los mosaicos reales existen entre zoom 10 y 16
+    minNativeZoom: 10,
+    maxNativeZoom: 16,
+
+    // Permite acercarse reutilizando las teselas
+    maxZoom: 20,
+
+    // Utiliza la misma extensión espacial que N60 predicha
+    bounds: boundsN60,
+    noWrap: true,
+
+    opacity: 0.72,
+    pane: 'interpolacionesPane',
+    updateWhenIdle: true,
+    keepBuffer: 4,
+
+    attribution: 'Geoarquitec · Incertidumbre N60'
+  }
+);
+
+// Capacidad portante predicha
+const capacidadPortantePredicha = L.tileLayer(
+  'tiles/capacidad_portante/{z}/{x}/{y}.png',
+  {
+    minZoom: 0,
+    minNativeZoom: 10,
+    maxNativeZoom: 16,
+    maxZoom: 20,
+
+    bounds: boundsN60,
+    noWrap: true,
+
+    opacity: 0.72,
+    pane: 'interpolacionesPane',
+    updateWhenIdle: true,
+    keepBuffer: 4,
+
+    attribution: 'Geoarquitec · Capacidad portante predicha'
+  }
+);
+
+// Incertidumbre o error estándar de capacidad portante
+const incertidumbreCapacidadPortante = L.tileLayer(
+  'tiles/capacidad_portante_error/{z}/{x}/{y}.png',
+  {
+    minZoom: 0,
+    minNativeZoom: 10,
+    maxNativeZoom: 16,
+    maxZoom: 20,
+
+    bounds: boundsN60,
+    noWrap: true,
+
+    opacity: 0.72,
+    pane: 'interpolacionesPane',
+    updateWhenIdle: true,
+    keepBuffer: 4,
+
+    attribution: 'Geoarquitec · Incertidumbre de capacidad portante'
+  }
+);
+
+// Humedad predicha
+const interpolacionHumedad = L.tileLayer(
+  'tiles/humedad/{z}/{x}/{y}.png',
+  {
+    // Permite activarla desde cualquier nivel de alejamiento
+    minZoom: 0,
+
+    // Los mosaicos reales existen entre zoom 10 y 16
+    minNativeZoom: 10,
+    maxNativeZoom: 16,
+
+    // Permite acercarse más reutilizando las teselas
+    maxZoom: 20,
+
+    // Usa la misma extensión espacial del resto de interpolaciones
+    bounds: boundsN60,
+    noWrap: true,
+
+    opacity: 0.72,
+    pane: 'interpolacionesPane',
+    updateWhenIdle: true,
+    keepBuffer: 4,
+
+    attribution: 'Geoarquitec · Humedad predicha'
+  }
+);
+
+// Incertidumbre o error estándar de humedad
+const incertidumbreHumedad = L.tileLayer(
+  'tiles/humedad_error/{z}/{x}/{y}.png',
+  {
+    minZoom: 0,
+    minNativeZoom: 10,
+    maxNativeZoom: 16,
+    maxZoom: 20,
+
+    bounds: boundsN60,
+    noWrap: true,
+
+    opacity: 0.72,
+    pane: 'interpolacionesPane',
+    updateWhenIdle: true,
+    keepBuffer: 4,
+
+    attribution: 'Geoarquitec · Incertidumbre de humedad'
+  }
+);
 
 // Mapas base
 const mapasBase = {
@@ -100,7 +216,12 @@ const mapasBase = {
 
 // Capas técnicas activables
 const capasTematicas = {
-  'Interpolación N60': interpolacionN60
+  'N60 predicha': interpolacionN60,
+  'Incertidumbre N60': incertidumbreN60,
+  'Capacidad portante predicha': capacidadPortantePredicha,
+  'Incertidumbre capacidad portante': incertidumbreCapacidadPortante,
+  'Humedad predicha': interpolacionHumedad,
+  'Incertidumbre de humedad': incertidumbreHumedad
 };
 
 L.control.layers(
@@ -110,6 +231,15 @@ L.control.layers(
     collapsed: true
   }
 ).addTo(map);
+// Superficies que no deben mostrarse simultáneamente
+const capasInterpoladas = [
+  interpolacionN60,
+  incertidumbreN60,
+  capacidadPortantePredicha,
+  incertidumbreCapacidadPortante,
+  interpolacionHumedad,
+  incertidumbreHumedad
+];
 // Leyenda flotante dentro del mapa
 const legendControl = L.control({
   position: 'bottomright'
@@ -138,7 +268,27 @@ map.on('baselayerchange', () => {
 function corregirRenderMapa() {
   map.invalidateSize(true);
 
-  if (geoLayer && geoLayer.getBounds && geoLayer.getBounds().isValid()) {
+  // Si hay una interpolación activa, mantiene la vista en Loja
+  if (
+    capaTematicaActiva &&
+    boundsN60 &&
+    boundsN60.isValid()
+  ) {
+    map.fitBounds(boundsN60, {
+      animate: false,
+      padding: [25, 25],
+      maxZoom: 14
+    });
+
+    return;
+  }
+
+  // Si no hay interpolación activa, muestra todos los puntos SPT
+  if (
+    geoLayer &&
+    geoLayer.getBounds &&
+    geoLayer.getBounds().isValid()
+  ) {
     map.fitBounds(geoLayer.getBounds().pad(0.12), {
       animate: false
     });
@@ -161,30 +311,78 @@ document.addEventListener('visibilitychange', () => {
 let rawData = null;
 let geoLayer = null;
 let currentMetric = 'capacidad_portante_kg_cm2';
-let interpolacionN60Activa = false;
+let capaTematicaActiva = null;
 let indexByCode = new Map();
 
-map.on('overlayadd', (event) => {
-  if (event.layer === interpolacionN60) {
-    interpolacionN60Activa = true;
-    updateLegend();
+// Evita cruces de eventos cuando Leaflet cambia de superficie
+let cambiandoCapaTematica = false;
+
+function obtenerTipoCapa(layer) {
+  if (layer === interpolacionN60) return 'n60';
+  if (layer === incertidumbreN60) return 'n60_error';
+  if (layer === capacidadPortantePredicha) return 'capacidad_portante';
+
+  if (layer === incertidumbreCapacidadPortante) {
+    return 'capacidad_portante_error';
   }
+
+  if (layer === interpolacionHumedad) return 'humedad';
+
+  if (layer === incertidumbreHumedad) {
+    return 'humedad_error';
+  }
+
+  return null;
+}
+
+map.on('overlayadd', (event) => {
+  const tipo = obtenerTipoCapa(event.layer);
+
+  if (!tipo || cambiandoCapaTematica) return;
+
+  cambiandoCapaTematica = true;
+
+  // Apaga las demás superficies interpoladas
+  capasInterpoladas.forEach((layer) => {
+    if (layer !== event.layer && map.hasLayer(layer)) {
+      map.removeLayer(layer);
+    }
+  });
+
+  capaTematicaActiva = tipo;
+  cambiandoCapaTematica = false;
+
+  updateLegend();
+
+  map.fitBounds(boundsN60, {
+    padding: [25, 25],
+    maxZoom: 14,
+    animate: false
+  });
+
+  setTimeout(() => {
+    map.invalidateSize(true);
+  }, 200);
 });
 
-map.on('overlayadd', (event) => {
-  if (event.layer === interpolacionN60) {
-    interpolacionN60Activa = true;
-    updateLegend();
+map.on('overlayremove', (event) => {
+  if (
+    !capasInterpoladas.includes(event.layer) ||
+    cambiandoCapaTematica
+  ) {
+    return;
+  }
 
-    map.fitBounds(boundsN60, {
-      padding: [25, 25],
-      maxZoom: 14,
-      animate: true
-    });
+  const capaRestante = capasInterpoladas.find(
+    (layer) => map.hasLayer(layer)
+  );
 
-    setTimeout(() => {
-      map.invalidateSize(true);
-    }, 300);
+  capaTematicaActiva = obtenerTipoCapa(capaRestante);
+  updateLegend();
+
+  // Si ya no queda ninguna interpolación, regresa a los puntos
+  if (!capaTematicaActiva) {
+    corregirRenderMapa();
   }
 });
 const el = (id) => document.getElementById(id);
@@ -311,32 +509,105 @@ function updateLegend() {
 
   if (!legendBox || !title || !rows) return;
 
-  // Solo mostrar cuando la interpolación N60 esté activa
-  if (!interpolacionN60Activa) {
+  if (!capaTematicaActiva) {
+    legendBox.style.display = 'none';
+    return;
+  }
+
+  const colores = [
+    '#F5F500',
+    '#F5B800',
+    '#F57A00',
+    '#F53D00',
+    '#F50000'
+  ];
+
+  const leyendas = {
+    n60: {
+      titulo: 'N60 predicha',
+      etiquetas: [
+        '< 10 · Muy baja resistencia',
+        '10 – 19 · Baja resistencia',
+        '20 – 29 · Resistencia media',
+        '30 – 39 · Alta resistencia',
+        '≥ 40 · Muy alta resistencia'
+      ]
+    },
+
+    n60_error: {
+      titulo: 'Incertidumbre N60',
+      etiquetas: [
+        'Muy baja incertidumbre',
+        'Baja incertidumbre',
+        'Incertidumbre media',
+        'Alta incertidumbre',
+        'Muy alta incertidumbre'
+      ]
+    },
+
+    capacidad_portante: {
+      titulo: 'Capacidad portante predicha',
+      etiquetas: [
+        'Muy baja capacidad portante',
+        'Baja capacidad portante',
+        'Capacidad portante media',
+        'Alta capacidad portante',
+        'Muy alta capacidad portante'
+      ]
+    },
+
+    capacidad_portante_error: {
+      titulo: 'Incertidumbre capacidad portante',
+      etiquetas: [
+        'Muy baja incertidumbre',
+        'Baja incertidumbre',
+        'Incertidumbre media',
+        'Alta incertidumbre',
+        'Muy alta incertidumbre'
+      ]
+    },
+
+    humedad: {
+      titulo: 'Humedad predicha',
+      etiquetas: [
+        '≤ 10,00 % · Muy baja humedad',
+        '> 10,00 y ≤ 14,00 % · Baja humedad',
+        '> 14,00 y ≤ 18,00 % · Humedad media',
+        '> 18,00 y ≤ 22,00 % · Alta humedad',
+        '> 22,00 y ≤ 27,29 % · Muy alta humedad'
+      ]
+    },
+
+    humedad_error: {
+      titulo: 'Incertidumbre de humedad',
+      etiquetas: [
+        '≤ 5,930 · Muy baja incertidumbre',
+        '> 5,930 y ≤ 6,441 · Baja incertidumbre',
+        '> 6,441 y ≤ 7,138 · Incertidumbre media',
+        '> 7,138 y ≤ 8,090 · Alta incertidumbre',
+        '> 8,090 y ≤ 9,785 · Muy alta incertidumbre'
+      ]
+    }
+  };
+
+  const leyenda = leyendas[capaTematicaActiva];
+
+  if (!leyenda) {
     legendBox.style.display = 'none';
     return;
   }
 
   legendBox.style.display = 'block';
-  title.textContent = 'N60 predicha';
+  title.textContent = leyenda.titulo;
 
-  // Colores iguales a la simbología del raster de ArcGIS Pro
-  const items = [
-    ['#F5F500', '< 10 · Muy baja resistencia'],
-    ['#F5B800', '10 – 19 · Baja resistencia'],
-    ['#F57A00', '20 – 29 · Resistencia media'],
-    ['#F53D00', '30 – 39 · Alta resistencia'],
-    ['#F50000', '≥ 40 · Muy alta resistencia']
-  ];
-
-  rows.innerHTML = items.map(([color, text]) => `
+  rows.innerHTML = leyenda.etiquetas.map((texto, indice) => `
     <div class="legend-row">
       <span
         class="swatch"
-        style="background:${color}"
+        style="background:${colores[indice]}"
         aria-hidden="true"
       ></span>
-      <span class="legend-label">${text}</span>
+      <span class="legend-label">${texto}</span>
     </div>
   `).join('');
 }
@@ -379,10 +650,13 @@ function render(){
 updateLegend();
 updateList(fc.features);
 
-if(fc.features.length){
-  map.fitBounds(geoLayer.getBounds().pad(0.12), {
-    animate: false
-  });
+if (fc.features.length) {
+  // Solo ajusta la vista a los puntos si no hay una superficie activa
+  if (!capaTematicaActiva) {
+    map.fitBounds(geoLayer.getBounds().pad(0.12), {
+      animate: false
+    });
+  }
 
   setTimeout(corregirRenderMapa, 250);
   setTimeout(corregirRenderMapa, 900);
@@ -462,10 +736,24 @@ function cambiarVistaMovil(mostrarMapa) {
   }
 
   setTimeout(() => {
-    map.invalidateSize(true);
+  map.invalidateSize(true);
 
+  if (mostrarMapa) {
+    // Si hay una interpolación activa, conserva la vista en Loja
     if (
-      mostrarMapa &&
+      capaTematicaActiva &&
+      boundsN60 &&
+      boundsN60.isValid()
+    ) {
+      map.fitBounds(boundsN60, {
+        animate: false,
+        padding: [25, 25],
+        maxZoom: 14
+      });
+    }
+
+    // Si no hay interpolación, muestra los puntos SPT
+    else if (
       geoLayer &&
       geoLayer.getBounds &&
       geoLayer.getBounds().isValid()
@@ -475,7 +763,8 @@ function cambiarVistaMovil(mostrarMapa) {
         { animate: false }
       );
     }
-  }, 250);
+  }
+}, 250);
 }
 
 if (sidebarToggle) {
