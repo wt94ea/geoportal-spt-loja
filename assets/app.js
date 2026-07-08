@@ -110,6 +110,11 @@ L.control.layers(
     collapsed: true
   }
 ).addTo(map);
+// Superficies que no deben mostrarse simultáneamente
+const capasInterpoladas = [
+  interpolacionN60,
+  incertidumbreN60
+];
 // Leyenda flotante dentro del mapa
 const legendControl = L.control({
   position: 'bottomright'
@@ -138,7 +143,27 @@ map.on('baselayerchange', () => {
 function corregirRenderMapa() {
   map.invalidateSize(true);
 
-  if (geoLayer && geoLayer.getBounds && geoLayer.getBounds().isValid()) {
+  // Si hay una interpolación activa, mantiene la vista en Loja
+  if (
+    capaTematicaActiva &&
+    boundsN60 &&
+    boundsN60.isValid()
+  ) {
+    map.fitBounds(boundsN60, {
+      animate: false,
+      padding: [25, 25],
+      maxZoom: 14
+    });
+
+    return;
+  }
+
+  // Si no hay interpolación activa, muestra todos los puntos SPT
+  if (
+    geoLayer &&
+    geoLayer.getBounds &&
+    geoLayer.getBounds().isValid()
+  ) {
     map.fitBounds(geoLayer.getBounds().pad(0.12), {
       animate: false
     });
@@ -161,30 +186,66 @@ document.addEventListener('visibilitychange', () => {
 let rawData = null;
 let geoLayer = null;
 let currentMetric = 'capacidad_portante_kg_cm2';
-let interpolacionN60Activa = false;
+let capaTematicaActiva = null;
 let indexByCode = new Map();
 
+// Evita cruces de eventos cuando Leaflet cambia de superficie
+let cambiandoCapaTematica = false;
+
+function obtenerTipoCapa(layer) {
+  if (layer === interpolacionN60) return 'n60';
+  if (layer === incertidumbreN60) return 'n60_error';
+  return null;
+}
+
 map.on('overlayadd', (event) => {
-  if (event.layer === interpolacionN60) {
-    interpolacionN60Activa = true;
-    updateLegend();
-  }
+  const tipo = obtenerTipoCapa(event.layer);
+
+  if (!tipo || cambiandoCapaTematica) return;
+
+  cambiandoCapaTematica = true;
+
+  // Apaga las demás superficies interpoladas
+  capasInterpoladas.forEach((layer) => {
+    if (layer !== event.layer && map.hasLayer(layer)) {
+      map.removeLayer(layer);
+    }
+  });
+
+  capaTematicaActiva = tipo;
+  cambiandoCapaTematica = false;
+
+  updateLegend();
+
+  map.fitBounds(boundsN60, {
+    padding: [25, 25],
+    maxZoom: 14,
+    animate: false
+  });
+
+  setTimeout(() => {
+    map.invalidateSize(true);
+  }, 200);
 });
 
-map.on('overlayadd', (event) => {
-  if (event.layer === interpolacionN60) {
-    interpolacionN60Activa = true;
-    updateLegend();
+map.on('overlayremove', (event) => {
+  if (
+    !capasInterpoladas.includes(event.layer) ||
+    cambiandoCapaTematica
+  ) {
+    return;
+  }
 
-    map.fitBounds(boundsN60, {
-      padding: [25, 25],
-      maxZoom: 14,
-      animate: true
-    });
+  const capaRestante = capasInterpoladas.find(
+    (layer) => map.hasLayer(layer)
+  );
 
-    setTimeout(() => {
-      map.invalidateSize(true);
-    }, 300);
+  capaTematicaActiva = obtenerTipoCapa(capaRestante);
+  updateLegend();
+
+  // Si ya no queda ninguna interpolación, regresa a los puntos
+  if (!capaTematicaActiva) {
+    corregirRenderMapa();
   }
 });
 const el = (id) => document.getElementById(id);
@@ -311,32 +372,61 @@ function updateLegend() {
 
   if (!legendBox || !title || !rows) return;
 
-  // Solo mostrar cuando la interpolación N60 esté activa
-  if (!interpolacionN60Activa) {
+  if (!capaTematicaActiva) {
+    legendBox.style.display = 'none';
+    return;
+  }
+
+  const colores = [
+    '#F5F500',
+    '#F5B800',
+    '#F57A00',
+    '#F53D00',
+    '#F50000'
+  ];
+
+  const leyendas = {
+    n60: {
+      titulo: 'N60 predicha',
+      etiquetas: [
+        '< 10 · Muy baja resistencia',
+        '10 – 19 · Baja resistencia',
+        '20 – 29 · Resistencia media',
+        '30 – 39 · Alta resistencia',
+        '≥ 40 · Muy alta resistencia'
+      ]
+    },
+
+    n60_error: {
+      titulo: 'Incertidumbre N60',
+      etiquetas: [
+        'Muy baja incertidumbre',
+        'Baja incertidumbre',
+        'Incertidumbre media',
+        'Alta incertidumbre',
+        'Muy alta incertidumbre'
+      ]
+    }
+  };
+
+  const leyenda = leyendas[capaTematicaActiva];
+
+  if (!leyenda) {
     legendBox.style.display = 'none';
     return;
   }
 
   legendBox.style.display = 'block';
-  title.textContent = 'N60 predicha';
+  title.textContent = leyenda.titulo;
 
-  // Colores iguales a la simbología del raster de ArcGIS Pro
-  const items = [
-    ['#F5F500', '< 10 · Muy baja resistencia'],
-    ['#F5B800', '10 – 19 · Baja resistencia'],
-    ['#F57A00', '20 – 29 · Resistencia media'],
-    ['#F53D00', '30 – 39 · Alta resistencia'],
-    ['#F50000', '≥ 40 · Muy alta resistencia']
-  ];
-
-  rows.innerHTML = items.map(([color, text]) => `
+  rows.innerHTML = leyenda.etiquetas.map((texto, indice) => `
     <div class="legend-row">
       <span
         class="swatch"
-        style="background:${color}"
+        style="background:${colores[indice]}"
         aria-hidden="true"
       ></span>
-      <span class="legend-label">${text}</span>
+      <span class="legend-label">${texto}</span>
     </div>
   `).join('');
 }
@@ -379,10 +469,13 @@ function render(){
 updateLegend();
 updateList(fc.features);
 
-if(fc.features.length){
-  map.fitBounds(geoLayer.getBounds().pad(0.12), {
-    animate: false
-  });
+if (fc.features.length) {
+  // Solo ajusta la vista a los puntos si no hay una superficie activa
+  if (!capaTematicaActiva) {
+    map.fitBounds(geoLayer.getBounds().pad(0.12), {
+      animate: false
+    });
+  }
 
   setTimeout(corregirRenderMapa, 250);
   setTimeout(corregirRenderMapa, 900);
@@ -462,10 +555,24 @@ function cambiarVistaMovil(mostrarMapa) {
   }
 
   setTimeout(() => {
-    map.invalidateSize(true);
+  map.invalidateSize(true);
 
+  if (mostrarMapa) {
+    // Si hay una interpolación activa, conserva la vista en Loja
     if (
-      mostrarMapa &&
+      capaTematicaActiva &&
+      boundsN60 &&
+      boundsN60.isValid()
+    ) {
+      map.fitBounds(boundsN60, {
+        animate: false,
+        padding: [25, 25],
+        maxZoom: 14
+      });
+    }
+
+    // Si no hay interpolación, muestra los puntos SPT
+    else if (
       geoLayer &&
       geoLayer.getBounds &&
       geoLayer.getBounds().isValid()
@@ -475,7 +582,8 @@ function cambiarVistaMovil(mostrarMapa) {
         { animate: false }
       );
     }
-  }, 250);
+  }
+}, 250);
 }
 
 if (sidebarToggle) {
