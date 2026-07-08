@@ -89,6 +89,53 @@ const interpolacionN60 = L.tileLayer(
     attribution: 'Geoarquitec · Interpolación N60'
   }
 );
+// Incertidumbre o error estándar de N60
+const incertidumbreN60 = L.tileLayer(
+  'tiles/n60_error/{z}/{x}/{y}.png',
+  {
+    // Permite activarla desde cualquier nivel de alejamiento
+    minZoom: 0,
+
+    // Los mosaicos reales existen entre zoom 10 y 16
+    minNativeZoom: 10,
+    maxNativeZoom: 16,
+
+    // Permite acercarse reutilizando las teselas
+    maxZoom: 20,
+
+    // Utiliza la misma extensión espacial que N60 predicha
+    bounds: boundsN60,
+    noWrap: true,
+
+    opacity: 0.72,
+    pane: 'interpolacionesPane',
+    updateWhenIdle: true,
+    keepBuffer: 4,
+
+    attribution: 'Geoarquitec · Incertidumbre N60'
+  }
+);
+
+// Capacidad portante predicha
+const capacidadPortantePredicha = L.tileLayer(
+  'tiles/capacidad_portante/{z}/{x}/{y}.png',
+  {
+    minZoom: 0,
+    minNativeZoom: 10,
+    maxNativeZoom: 16,
+    maxZoom: 20,
+
+    bounds: boundsN60,
+    noWrap: true,
+
+    opacity: 0.72,
+    pane: 'interpolacionesPane',
+    updateWhenIdle: true,
+    keepBuffer: 4,
+
+    attribution: 'Geoarquitec · Capacidad portante predicha'
+  }
+);
 
 // Mapas base
 const mapasBase = {
@@ -100,7 +147,9 @@ const mapasBase = {
 
 // Capas técnicas activables
 const capasTematicas = {
-  'Interpolación N60': interpolacionN60
+  'N60 predicha': interpolacionN60,
+  'Incertidumbre N60': incertidumbreN60,
+  'Capacidad portante predicha': capacidadPortantePredicha
 };
 
 L.control.layers(
@@ -113,7 +162,8 @@ L.control.layers(
 // Superficies que no deben mostrarse simultáneamente
 const capasInterpoladas = [
   interpolacionN60,
-  incertidumbreN60
+  incertidumbreN60,
+  capacidadPortantePredicha
 ];
 // Leyenda flotante dentro del mapa
 const legendControl = L.control({
@@ -195,6 +245,7 @@ let cambiandoCapaTematica = false;
 function obtenerTipoCapa(layer) {
   if (layer === interpolacionN60) return 'n60';
   if (layer === incertidumbreN60) return 'n60_error';
+  if (layer === capacidadPortantePredicha) return 'capacidad_portante';
   return null;
 }
 
@@ -405,6 +456,17 @@ function updateLegend() {
         'Incertidumbre media',
         'Alta incertidumbre',
         'Muy alta incertidumbre'
+      ]
+    },
+
+    capacidad_portante: {
+      titulo: 'Capacidad portante predicha',
+      etiquetas: [
+        'Muy baja capacidad portante',
+        'Baja capacidad portante',
+        'Capacidad portante media',
+        'Alta capacidad portante',
+        'Muy alta capacidad portante'
       ]
     }
   };
