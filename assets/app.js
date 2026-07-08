@@ -158,6 +158,33 @@ const incertidumbreCapacidadPortante = L.tileLayer(
   }
 );
 
+// Humedad predicha
+const interpolacionHumedad = L.tileLayer(
+  'tiles/humedad/{z}/{x}/{y}.png',
+  {
+    // Permite activarla desde cualquier nivel de alejamiento
+    minZoom: 0,
+
+    // Los mosaicos reales existen entre zoom 10 y 16
+    minNativeZoom: 10,
+    maxNativeZoom: 16,
+
+    // Permite acercarse más reutilizando las teselas
+    maxZoom: 20,
+
+    // Usa la misma extensión espacial del resto de interpolaciones
+    bounds: boundsN60,
+    noWrap: true,
+
+    opacity: 0.72,
+    pane: 'interpolacionesPane',
+    updateWhenIdle: true,
+    keepBuffer: 4,
+
+    attribution: 'Geoarquitec · Humedad predicha'
+  }
+);
+
 // Mapas base
 const mapasBase = {
   'Claro técnico': claroTecnico,
@@ -171,7 +198,8 @@ const capasTematicas = {
   'N60 predicha': interpolacionN60,
   'Incertidumbre N60': incertidumbreN60,
   'Capacidad portante predicha': capacidadPortantePredicha,
-  'Incertidumbre capacidad portante': incertidumbreCapacidadPortante
+  'Incertidumbre capacidad portante': incertidumbreCapacidadPortante,
+  'Humedad predicha': interpolacionHumedad
 };
 
 L.control.layers(
@@ -273,6 +301,8 @@ function obtenerTipoCapa(layer) {
   if (layer === incertidumbreCapacidadPortante) {
     return 'capacidad_portante_error';
   }
+
+  if (layer === interpolacionHumedad) return 'humedad';
 
   return null;
 }
@@ -506,6 +536,17 @@ function updateLegend() {
         'Incertidumbre media',
         'Alta incertidumbre',
         'Muy alta incertidumbre'
+      ]
+    },
+
+    humedad: {
+      titulo: 'Humedad predicha',
+      etiquetas: [
+        '≤ 10,00 % · Muy baja humedad',
+        '> 10,00 y ≤ 14,00 % · Baja humedad',
+        '> 14,00 y ≤ 18,00 % · Humedad media',
+        '> 18,00 y ≤ 22,00 % · Alta humedad',
+        '> 22,00 y ≤ 27,29 % · Muy alta humedad'
       ]
     }
   };
