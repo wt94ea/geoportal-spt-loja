@@ -185,6 +185,27 @@ const interpolacionHumedad = L.tileLayer(
   }
 );
 
+// Incertidumbre o error estándar de humedad
+const incertidumbreHumedad = L.tileLayer(
+  'tiles/humedad_error/{z}/{x}/{y}.png',
+  {
+    minZoom: 0,
+    minNativeZoom: 10,
+    maxNativeZoom: 16,
+    maxZoom: 20,
+
+    bounds: boundsN60,
+    noWrap: true,
+
+    opacity: 0.72,
+    pane: 'interpolacionesPane',
+    updateWhenIdle: true,
+    keepBuffer: 4,
+
+    attribution: 'Geoarquitec · Incertidumbre de humedad'
+  }
+);
+
 // Mapas base
 const mapasBase = {
   'Claro técnico': claroTecnico,
@@ -199,7 +220,8 @@ const capasTematicas = {
   'Incertidumbre N60': incertidumbreN60,
   'Capacidad portante predicha': capacidadPortantePredicha,
   'Incertidumbre capacidad portante': incertidumbreCapacidadPortante,
-  'Humedad predicha': interpolacionHumedad
+  'Humedad predicha': interpolacionHumedad,
+  'Incertidumbre de humedad': incertidumbreHumedad
 };
 
 L.control.layers(
@@ -214,7 +236,9 @@ const capasInterpoladas = [
   interpolacionN60,
   incertidumbreN60,
   capacidadPortantePredicha,
-  incertidumbreCapacidadPortante
+  incertidumbreCapacidadPortante,
+  interpolacionHumedad,
+  incertidumbreHumedad
 ];
 // Leyenda flotante dentro del mapa
 const legendControl = L.control({
@@ -303,6 +327,10 @@ function obtenerTipoCapa(layer) {
   }
 
   if (layer === interpolacionHumedad) return 'humedad';
+
+  if (layer === incertidumbreHumedad) {
+    return 'humedad_error';
+  }
 
   return null;
 }
@@ -547,6 +575,17 @@ function updateLegend() {
         '> 14,00 y ≤ 18,00 % · Humedad media',
         '> 18,00 y ≤ 22,00 % · Alta humedad',
         '> 22,00 y ≤ 27,29 % · Muy alta humedad'
+      ]
+    },
+
+    humedad_error: {
+      titulo: 'Incertidumbre de humedad',
+      etiquetas: [
+        '≤ 5,930 · Muy baja incertidumbre',
+        '> 5,930 y ≤ 6,441 · Baja incertidumbre',
+        '> 6,441 y ≤ 7,138 · Incertidumbre media',
+        '> 7,138 y ≤ 8,090 · Alta incertidumbre',
+        '> 8,090 y ≤ 9,785 · Muy alta incertidumbre'
       ]
     }
   };
