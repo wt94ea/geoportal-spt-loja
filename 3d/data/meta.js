@@ -1,2 +1,2 @@
-// Generado por tools/exportar_maestra.py — 2026-10-25 14:34
-const META = {"fecha_export": "2026-10-25 14:34", "fuente": "BASE_MAESTRA_SPT_20261017.xlsx", "crs_origen": "EPSG:32717 (declarado por practica de campo)", "n_sondeos": 285, "n_sondeos_mapa": 269, "n_sondeos_publicos": 229, "n_intervalos_3d": 523, "n60_estimado_metodo": "N_campo x CE(1,0) x CB(1,0) x CR(0,75|0,85|0,95|1,0 por profundidad) x CS(1,0); ver 21_N60_ESTIMADO!N1:N6"};
+// Generado por tools/exportar_maestra.py — 2026-10-25 16:16
+const META = {"fecha_export": "2026-10-25 16:16", "fuente": "BASE_MAESTRA_SPT_20261025.xlsx", "crs_origen": "EPSG:32717 (declarado por practica de campo)", "n_sondeos": 285, "n_sondeos_mapa": 269, "n_sondeos_publicos": 269, "n_intervalos_3d": 523, "n60_estimado_metodo": "N_campo x CE(1,0) x CB(1,0) x CR(0,75|0,85|0,95|1,0 por profundidad) x CS(1,0); ver 21_N60_ESTIMADO!N1:N6"};
