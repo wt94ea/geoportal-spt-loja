@@ -166,7 +166,7 @@ function select(id){
   $('ficha').hidden = false; $('ficha-id').textContent = pub(s);
   const rows = [['Parroquia', s.parroquia||'—'],['Cantón / año', `${s.canton||'—'} / ${s.anio||'—'}`],['Cota', fmt(s.elevacion_msnm,2)+' msnm'],['Profundidad', fmt(s.profundidad_total_m,2)+' m'],
     ['Nivel freático', s.nivel_freatico||'—'],['N60 a 2 m', s.n60_2m_rep!=null?fmt(s.n60_2m_rep,0)+' (rep.)':(s.n60_2m_est!=null?fmt(s.n60_2m_est,0)+' (est.)':'—')],
-    ['q adm', s.qadm_kg_cm2!=null?fmt(s.qadm_kg_cm2,2)+' kg/cm² · Df '+fmt(s.df_m,1)+' m':'—'],['SUCS / AASHTO', sucsAashto(s, ints)],['Tipo de suelo', suelo(s, ints)],['CRS', '32717']];
+    ['q adm', s.qadm_kg_cm2!=null?fmt(s.qadm_kg_cm2,2)+' kg/cm² · Df '+fmt(s.df_m,1)+' m':'—'],['SUCS / AASHTO', sucsAashto(s, ints)],['Tipo de suelo', suelo(s, ints)],['Estado', s.estado_revision || (/NO_PUBLICAR|NO_APTO|CRS_VERTICAL|REFERENCIA_VERTICAL/.test(s.estado_qa||'') ? 'Revisión parcial · cota pendiente' : (/REVISADO_CON_QA/.test(s.estado_qa||'') && !/PENDIENTE/.test(s.estado_qa||'') ? 'Revisado' : 'Revisión parcial'))],['CRS', '32717']];
   $('ficha-meta').innerHTML = rows.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('');
   perfil(s, ints);
   map.flyTo({ center:[s.lon,s.lat], zoom:Math.max(map.getZoom(),16), duration:900, offset:(window.innerWidth <= 860 && panelOpen()) ? [0, 40] : [0, 0] });
@@ -190,7 +190,7 @@ function popup(s, ints){
   const top = ints[0]; const sucs = [...new Set(ints.map(i=>i.sucs).filter(Boolean))].slice(0,3).join(', ') || '—';
   const rows = [['Parroquia', s.parroquia||'—'],['Cantón · año', `${s.canton||'—'} · ${s.anio||'—'}`],['Elevación', fmt(s.elevacion_msnm,0)+' msnm'],['Profundidad sondeo', fmt(s.profundidad_total_m,2)+' m'],
     ['N60 a 2 m', n2],['Capacidad portante', s.qadm_kg_cm2!=null ? fmt(s.qadm_kg_cm2,2)+' kg/cm² (Df '+fmt(s.df_m,1)+' m)' : '—'],['Humedad natural', top&&top.humedad_ref_pct!=null ? fmt(top.humedad_ref_pct,1)+' %' : '—'],
-    ['SUCS / AASHTO', sucsAashto(s, ints)],['Nivel freático', s.nivel_freatico||'No reportado'],['Tipo de suelo', suelo(s, ints)],['CRS', '32717']];
+    ['SUCS / AASHTO', sucsAashto(s, ints)],['Nivel freático', s.nivel_freatico||'No reportado'],['Tipo de suelo', suelo(s, ints)],['Estado', s.estado_revision || (/NO_PUBLICAR|NO_APTO|CRS_VERTICAL|REFERENCIA_VERTICAL/.test(s.estado_qa||'') ? 'Revisión parcial · cota pendiente' : (/REVISADO_CON_QA/.test(s.estado_qa||'') && !/PENDIENTE/.test(s.estado_qa||'') ? 'Revisado' : 'Revisión parcial'))],['CRS', '32717']];
   const html = `<div class="pop"><div class="pop-head"><span class="tag">${pub(s)}</span><span class="tag g">Anonimizado</span></div><h4>Registro geotécnico</h4>
     <table>${rows.map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('')}</table><span class="link hint">Perfil completo en el panel izquierdo ↙</span></div>`;
   POP = new maplibregl.Popup({ maxWidth:'320px', offset:14 }).setLngLat([s.lon,s.lat]).setHTML(html).addTo(map);
