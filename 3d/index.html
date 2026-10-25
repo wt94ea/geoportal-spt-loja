@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Geoarquitec | Subsuelo SPT 3D</title>
+<meta name="description" content="Modelo 3D de sondeos SPT de GEOARQUITEC en Loja: estratigrafía a profundidad real, N60, humedad y capacidad admisible interpoladas (EBK). Datos anonimizados."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="icon" type="image/png" href="assets/favicon.png"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=JetBrains+Mono:wght@400;600&display=swap"/>
+<link rel="stylesheet" href="assets/vendor/maplibre-gl.css"/>
+<link rel="stylesheet" href="assets/style.css"/>
+</head>
+<body>
+<div class="app">
+  <aside class="panel" id="panel">
+    <button id="panel-min" class="panel-min" aria-label="Ocultar panel de opciones" title="Ocultar panel">−</button>
+    <header class="brand">
+      <img src="assets/logo_geoarquitec.png" alt="GEOARQUITEC"/>
+      <h1>Geoportal Geotécnico SPT</h1>
+      <p class="sub">Plataforma institucional de Geoarquitec para consulta, análisis y visualización de información geotécnica. Los datos publicados han sido anonimizados para proteger la identidad de clientes y proyectos.</p>
+    </header>
+
+    <section class="block">
+      <h2>Controles de análisis</h2>
+      <div class="seg" role="group" aria-label="Modo de profundidad">
+        <button class="seg-btn" data-mode="sub" id="mode-sub">Subsuelo (rayos X)</button>
+        <button class="seg-btn active" data-mode="up" id="mode-up">Sobre el relieve</button>
+      </div>
+      <label class="range-label" for="exag">Exageración vertical <output id="exag-out">25×</output></label>
+      <input type="range" id="exag" min="1" max="40" step="1" value="25"/>
+      <label for="color-by">Color de los intervalos</label>
+      <select id="color-by">
+        <option value="sucs">Clasificación SUCS</option>
+        <option value="n60">N60 (reportado o estimado)</option>
+        <option value="hum">Humedad natural %</option>
+        <option value="calidad">Estado de calidad</option>
+      </select>
+      <div class="legend" id="legend"></div>
+    </section>
+
+    <section class="block">
+      <h2>Interpolación (EBK)</h2>
+      <label for="raster-sel">Capa</label>
+      <select id="raster-sel">
+        <option value="">Ninguna</option>
+        <option value="qadm_pred" selected>q admisible</option>
+        <option value="qadm_se">q admisible · error estándar</option>
+        <option value="n60_pred">N60 (solo reportado)</option>
+        <option value="n60_se">N60 · error estándar</option>
+        <option value="hum_pred">Humedad natural</option>
+        <option value="hum_se">Humedad · error estándar</option>
+      </select>
+      <label class="range-label" for="raster-op">Opacidad <output id="raster-op-out">25 %</output></label>
+      <input type="range" id="raster-op" min="0" max="100" step="5" value="25"/>
+      <div class="legend" id="raster-legend"></div>
+      <p class="raster-val" id="raster-val">Pasa el cursor o toca el mapa para leer el valor.</p>
+      <p class="hint" id="raster-note"></p>
+    </section>
+
+    <section class="block">
+      <h2>Terreno</h2>
+      <div class="grid2">
+        <label class="chk"><input type="checkbox" id="terrain-on" checked/> Relieve 3D (MDT 3 m)</label>
+        <label class="chk"><input type="checkbox" id="hillshade-on"/> Sombreado</label>
+      </div>
+      <label class="range-label" for="terrain-ex">Exageración del relieve <output id="terrain-ex-out">1,5×</output></label>
+      <input type="range" id="terrain-ex" min="1" max="3" step="0.25" value="1.5"/>
+      <div class="grid2">
+        <label class="chk"><input type="checkbox" id="parr-on" checked/> Parroquias urbanas</label>
+        <label class="chk"><input type="checkbox" id="parr-lab" checked/> Nombres</label>
+      </div>
+      <p class="hint" id="terrain-note"></p>
+    </section>
+
+    <section class="block">
+      <h2>Filtros</h2>
+      <div class="grid2">
+        <div><label for="f-ambito">Ámbito</label><select id="f-ambito"><option value="URBANO">Perímetro urbano de Loja</option><option value="">Todos los sondeos</option></select></div>
+        <div><label for="f-canton">Cantón</label><select id="f-canton"><option value="">Todos</option></select></div>
+        <div><label for="f-parr">Parroquia</label><select id="f-parr"><option value="">Todas</option></select></div>
+        <div><label for="f-sucs">SUCS</label><select id="f-sucs"><option value="">Todos</option></select></div>
+      </div>
+      <label for="q">Buscar sondeo</label>
+      <input id="q" type="search" placeholder="Código, p. ej. SPT-016383" autocomplete="off"/>
+      <div class="btns"><button id="reset" class="ghost">Restablecer filtros</button><button id="fit">Encuadrar</button></div>
+    </section>
+
+    <details class="lista-wrap" id="lista-wrap">
+      <summary>Registros visibles <span id="lista-n" class="pill"></span></summary>
+      <div class="lista" id="lista"></div>
+    </details>
+
+    <section class="block ficha" id="ficha" hidden>
+      <div class="ficha-head">
+        <h2 id="ficha-id">—</h2>
+        <button class="ghost small" id="ficha-close" aria-label="Cerrar ficha">✕</button>
+      </div>
+      <dl class="meta" id="ficha-meta"></dl>
+      <svg id="perfil" viewBox="0 0 320 300" role="img" aria-label="Perfil del sondeo"></svg>
+      <p class="hint">Barras: intervalos SUCS. Puntos: N60 por ensayo (● reportado, ○ estimado).</p>
+    </section>
+
+    <footer class="foot">
+      <p>Valores <strong>estimados</strong> = N<sub>campo</sub>·CE·CB·CR·CS con CE = 1,0 (martillo de seguridad). Nunca sustituyen al N60 reportado. Posiciones con datum declarado por práctica de campo, no acreditado por informe.</p>
+    </footer>
+  </aside>
+
+  <main class="map-wrap">
+    <div id="map" aria-label="Mapa 3D de sondeos"></div>
+    <button id="panel-toggle" class="panel-fab" aria-label="Mostrar panel de opciones" title="Opciones">☰</button>
+    <div class="hud">
+      <a class="hud-chip title back" href="../" title="Volver al geoportal 2D">‹ Geoportal 2D</a>
+      <div class="hud-chip title"><span class="dot"></span>Plataforma geotécnica 3D</div>
+      <div class="hud-chip title muted"><strong id="k-sond">–</strong>&nbsp;sondeos · EPSG:32717</div>
+      <div class="hud-chip" id="hud-basemap">
+        <button data-base="sat" class="active">Satélite</button><button data-base="topo">Topo</button><button data-base="osm">Calles</button>
+      </div>
+      <div class="hud-chip" id="hud-tilt"><button id="tilt-2d">2D</button><button id="tilt-3d" class="active">3D</button></div>
+    </div>
+    <div class="tooltip" id="tip" hidden></div>
+    <aside class="map-legend" id="map-legend"></aside>
+    <aside class="map-legend left" id="map-legend-int"></aside>
+    <div class="mini-card" id="mini" hidden></div>
+    <div class="ayuda" id="ayuda">Rueda: zoom · arrastrar: mover · clic derecho o Ctrl + arrastrar: girar e inclinar · clic en un sondeo: ficha</div>
+  </main>
+</div>
+
+<script src="assets/vendor/maplibre-gl.js"></script>
+<script src="assets/vendor/deck.gl.min.js"></script>
+<script src="data/meta.js"></script>
+<script src="data/sondeos.js"></script>
+<script src="data/intervalos.js"></script>
+<script src="data/rasters/rasters.js"></script>
+<script src="data/perimetro.js"></script>
+<script src="data/parroquias.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
