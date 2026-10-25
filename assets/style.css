@@ -562,3 +562,10 @@ input{
     height:19px;
   }
 }
+
+/* Acceso al modelo 3D */
+.btn-3d{display:flex;align-items:center;gap:12px;margin:12px 0 4px;padding:12px 14px;border-radius:14px;text-decoration:none;color:#fff;
+  background:linear-gradient(135deg,#ec8046,#c75d2c);border:1px solid rgba(255,255,255,.18);box-shadow:0 10px 30px rgba(236,128,70,.28);transition:transform .15s,box-shadow .15s}
+.btn-3d:hover{transform:translateY(-1px);box-shadow:0 14px 36px rgba(236,128,70,.4)}
+.btn-3d-ico{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:18px;flex:none}
+.btn-3d strong{display:block;font-size:17px;letter-spacing:.04em} .btn-3d small{display:block;font-size:11.5px;opacity:.9;margin-top:2px}
