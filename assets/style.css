@@ -569,3 +569,10 @@ input{
 .btn-3d:hover{transform:translateY(-1px);box-shadow:0 14px 36px rgba(236,128,70,.4)}
 .btn-3d-ico{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:18px;flex:none}
 .btn-3d strong{display:block;font-size:17px;letter-spacing:.04em} .btn-3d small{display:block;font-size:11.5px;opacity:.9;margin-top:2px}
+
+/* Parroquias (tematica Dark Tech compartida con el visor 3D) */
+.parroquia-label{background:transparent;border:0;box-shadow:none;color:#fff;font-weight:800;letter-spacing:.08em;font-size:11px;text-shadow:0 0 6px rgba(0,0,0,.95),0 0 2px #000;pointer-events:none;white-space:nowrap;padding:0}
+.parroquia-label.rural{color:#f2a06a;font-size:10px}
+.parroquia-label.ciudad{color:#fff;font-size:14px;transform:translate(-50%,-50%)}
+.parroquia-label::before{display:none}
+#map{background:#0b0f14}

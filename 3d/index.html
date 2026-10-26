@@ -63,7 +63,7 @@
       <h2>Terreno</h2>
       <div class="grid2">
         <label class="chk"><input type="checkbox" id="terrain-on" checked/> Relieve 3D (MDT 3 m)</label>
-        <label class="chk"><input type="checkbox" id="hillshade-on"/> Sombreado</label>
+        <label class="chk"><input type="checkbox" id="hillshade-on" checked/> Sombreado</label>
       </div>
       <label class="range-label" for="terrain-ex">Exageración del relieve <output id="terrain-ex-out">1,5×</output></label>
       <input type="range" id="terrain-ex" min="1" max="3" step="0.25" value="1.5"/>
@@ -87,6 +87,19 @@
       <div class="btns"><button id="reset" class="ghost">Restablecer filtros</button><button id="fit">Encuadrar</button></div>
     </section>
 
+    <section class="block corte-block">
+      <h2>Corte geotécnico</h2>
+      <p class="hint" style="margin:0 0 8px">Elige 2 o 3 sondeos cercanos y se dibuja la sección: columnas a su cota, estratos SUCS correlacionados y N60. Es una correlación interpretativa, no un modelo geológico.</p>
+      <div class="grid2">
+        <button id="corte-sel" class="ghost">Seleccionar sondeos</button>
+        <button id="corte-gen" disabled>Generar corte</button>
+      </div>
+      <label class="range-label" for="corte-dmax">Distancia máxima entre sondeos <output id="corte-dmax-out">500 m</output></label>
+      <input type="range" id="corte-dmax" min="100" max="1500" step="50" value="500"/>
+      <div class="chips" id="corte-chips"></div>
+      <p class="hint" id="corte-msg"></p>
+    </section>
+
     <details class="lista-wrap" id="lista-wrap">
       <summary>Registros visibles <span id="lista-n" class="pill"></span></summary>
       <div class="lista" id="lista"></div>
@@ -99,7 +112,7 @@
       </div>
       <dl class="meta" id="ficha-meta"></dl>
       <svg id="perfil" viewBox="0 0 320 300" role="img" aria-label="Perfil del sondeo"></svg>
-      <p class="hint">Barras: intervalos SUCS. Puntos: N60 por ensayo (● reportado, ○ estimado). "Cota pendiente": la referencia vertical del informe está en revisión; la posición en planta es válida.</p>
+      <p class="hint">Barras: intervalos SUCS. Puntos: N60 por ensayo (● reportado, ○ estimado).</p>
     </section>
 
     <footer class="foot">
@@ -115,7 +128,7 @@
       <div class="hud-chip title"><span class="dot"></span>Plataforma geotécnica 3D</div>
       <div class="hud-chip title muted"><strong id="k-sond">–</strong>&nbsp;sondeos · EPSG:32717</div>
       <div class="hud-chip" id="hud-basemap">
-        <button data-base="sat" class="active">Satélite</button><button data-base="topo">Topo</button><button data-base="osm">Calles</button>
+        <button data-base="dark" class="active">Oscuro</button><button data-base="sat">Satélite</button><button data-base="topo">Topo</button><button data-base="osm">Calles</button>
       </div>
       <div class="hud-chip" id="hud-tilt"><button id="tilt-2d">2D</button><button id="tilt-3d" class="active">3D</button></div>
     </div>
@@ -123,6 +136,10 @@
     <aside class="map-legend" id="map-legend"></aside>
     <aside class="map-legend left" id="map-legend-int"></aside>
     <div class="mini-card" id="mini" hidden></div>
+    <section class="corte-panel" id="corte" hidden aria-label="Corte geotécnico">
+      <div class="corte-head"><strong id="corte-titulo">Corte geotécnico</strong><div class="corte-btns"><button class="ghost small" id="corte-png">Descargar PNG</button><button class="ghost small" id="corte-close" aria-label="Cerrar corte">✕</button></div></div>
+      <div class="corte-svgwrap"><svg id="corte-svg" role="img" aria-label="Sección geotécnica entre sondeos"></svg></div>
+    </section>
     <div class="ayuda" id="ayuda">Rueda: zoom · arrastrar: mover · clic derecho o Ctrl + arrastrar: girar e inclinar · clic en un sondeo: ficha</div>
   </main>
 </div>
@@ -135,6 +152,6 @@
 <script src="data/rasters/rasters.js"></script>
 <script src="data/perimetro.js"></script>
 <script src="data/parroquias.js"></script>
-<script src="assets/app.js"></script>
+<script src="assets/app.js?v=terr9"></script>
 </body>
 </html>

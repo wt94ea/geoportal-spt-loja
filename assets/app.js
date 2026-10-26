@@ -3,7 +3,20 @@ const DATA_URL = 'data/spt_puntos.geojson';
 
 const map = L.map('map', { zoomControl: true, preferCanvas: true }).setView([-4.0, -79.2], 11);
 
-// Mapa claro técnico, recomendado como base principal
+// Mapa oscuro (Dark Tech), base por defecto hasta la exposición
+const oscuro = L.tileLayer(
+  'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
+  {
+    maxZoom: 20,
+    subdomains: 'abcd',
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+    detectRetina: true,
+    updateWhenIdle: true,
+    keepBuffer: 4
+  }
+).addTo(map);
+
+// Mapa claro técnico
 const claroTecnico = L.tileLayer(
   'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
   {
@@ -49,7 +62,7 @@ const topografico = L.tileLayer(
     updateWhenZooming: false,
     keepBuffer: 6
   }
-).addTo(map);
+);
 
 // Panel exclusivo para las superficies interpoladas.
 map.createPane('interpolacionesPane');
@@ -207,7 +220,14 @@ const incertidumbreHumedad = L.tileLayer(
 );
 
 // Mapas base
+// Parroquias (INEC DPA 2012, sur del Ecuador + 6 urbanas de Loja): naranja donde hay sondeos, gris donde no
+map.createPane('parroquiasPane');
+map.getPane('parroquiasPane').style.zIndex = 300;
+map.getPane('parroquiasPane').style.pointerEvents = 'none';
+const parroquiasLayer = L.layerGroup().addTo(map);
+
 const mapasBase = {
+  'Oscuro': oscuro,
   'Claro técnico': claroTecnico,
   'OpenStreetMap': osm,
   'Satélite': satelite,
@@ -221,8 +241,29 @@ const capasTematicas = {
   'Capacidad portante predicha': capacidadPortantePredicha,
   'Incertidumbre capacidad portante': incertidumbreCapacidadPortante,
   'Humedad predicha': interpolacionHumedad,
-  'Incertidumbre de humedad': incertidumbreHumedad
+  'Incertidumbre de humedad': incertidumbreHumedad,
+  'Parroquias': parroquiasLayer
 };
+
+function cargarParroquias(fc) {
+  const pts = (fc.features || []).map((f) => f.geometry.coordinates);
+  const pip = (pt, ring) => { let c = false; for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const [xi, yi] = ring[i], [xj, yj] = ring[j]; if (((yi > pt[1]) !== (yj > pt[1])) && (pt[0] < (xj - xi) * (pt[1] - yi) / (yj - yi) + xi)) c = !c; } return c; };
+  const inGeom = (pt, g) => (g.type === 'Polygon' ? [g.coordinates] : g.coordinates).some((p) => pip(pt, p[0]) && !p.slice(1).some((h) => pip(pt, h)));
+  const feats = PARROQUIAS.features.map((f) => { const p = f.properties; const n = p.nivel === 'cabecera' ? 0 : pts.filter((pt) => inGeom(pt, f.geometry)).length; return { ...f, properties: { ...p, n_sondeos: n, con: n > 0 } }; });
+  L.geoJSON({ type: 'FeatureCollection', features: feats }, {
+    pane: 'parroquiasPane',
+    style: (f) => ({ color: f.properties.con ? '#ec8046' : '#6b7785', weight: f.properties.con ? 1.4 : 0.8, opacity: f.properties.con ? 0.8 : 0.45, dashArray: '3 3', fillColor: f.properties.con ? '#ec8046' : '#9aa8b6', fillOpacity: f.properties.nivel === 'cabecera' ? 0 : (f.properties.con ? 0.10 : 0.04) }),
+    onEachFeature: (f, layer) => {
+      const p = f.properties;
+      if (p.nivel === 'cabecera' || !(p.con || p.nivel === 'urbana')) return;
+      layer.bindTooltip(p.nombre.toUpperCase(), { permanent: true, direction: 'center', className: 'parroquia-label ' + (p.nivel === 'urbana' ? 'urbana' : 'rural') });
+    }
+  }).addTo(parroquiasLayer);
+  const cab = feats.find((f) => f.properties.nivel === 'cabecera');
+  if (cab) L.marker([cab.properties.lat, cab.properties.lon], { pane: 'parroquiasPane', interactive: false, icon: L.divIcon({ className: 'parroquia-label ciudad', html: 'LOJA', iconSize: null }) }).addTo(parroquiasLayer);
+  const ajustarEtiquetas = () => { const z = map.getZoom(); document.querySelectorAll('.parroquia-label.urbana').forEach((e) => { e.style.display = z >= 13 ? '' : 'none'; }); document.querySelectorAll('.parroquia-label.rural').forEach((e) => { e.style.display = (z >= 10 && z < 14) ? '' : 'none'; }); document.querySelectorAll('.parroquia-label.ciudad').forEach((e) => { e.style.display = z < 13 ? '' : 'none'; }); };
+  map.on('zoomend', ajustarEtiquetas); ajustarEtiquetas();
+}
 
 L.control.layers(
   mapasBase,
@@ -687,6 +728,7 @@ fetch(DATA_URL)
   })
   .then(data => {
     rawData = data;
+    if (typeof PARROQUIAS !== 'undefined') cargarParroquias(data);
     fillSelect(sucsSelect, uniqueSorted(data.features, 'sucs'));
     fillSelect(nfSelect, uniqueSorted(data.features, 'nivel_freatico'));
     fillSelect(cantonSelect, uniqueSorted(data.features, 'canton'));
