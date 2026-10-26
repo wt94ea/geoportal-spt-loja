@@ -4,17 +4,16 @@ const DATA_URL = 'data/spt_puntos.geojson';
 const map = L.map('map', { zoomControl: true, preferCanvas: true }).setView([-4.0, -79.2], 11);
 
 // Mapa oscuro (Dark Tech), base por defecto hasta la exposición
+// (CARTO exige clave API desde 10/2026; se usa el lienzo gris oscuro de Esri, sin clave)
 const oscuro = L.tileLayer(
-  'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
+  'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
   {
-    maxZoom: 20,
-    subdomains: 'abcd',
-    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-    detectRetina: true,
+    maxZoom: 16,
+    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
     updateWhenIdle: true,
     keepBuffer: 4
   }
-).addTo(map);
+);
 
 // Mapa claro técnico
 const claroTecnico = L.tileLayer(
@@ -62,7 +61,7 @@ const topografico = L.tileLayer(
     updateWhenZooming: false,
     keepBuffer: 6
   }
-);
+).addTo(map);
 
 // Panel exclusivo para las superficies interpoladas.
 map.createPane('interpolacionesPane');
@@ -227,11 +226,11 @@ map.getPane('parroquiasPane').style.pointerEvents = 'none';
 const parroquiasLayer = L.layerGroup().addTo(map);
 
 const mapasBase = {
-  'Oscuro': oscuro,
   'Claro técnico': claroTecnico,
   'OpenStreetMap': osm,
   'Satélite': satelite,
-  'Topográfico': topografico
+  'Topográfico': topografico,
+  'Oscuro': oscuro
 };
 
 // Capas técnicas activables
