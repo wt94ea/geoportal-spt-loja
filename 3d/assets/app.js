@@ -150,7 +150,7 @@ function layers(){
   const axis = sel ? new deck.LineLayer({ id:'eje', data:[sel], getSourcePosition:s=>[s.lon,s.lat,(S.terrain?(s.elevacion_msnm||0)*S.terrainEx:0)+(S.mode==='sub'?-(s.prof_max||s.profundidad_total_m||6)*ex-2:0)], getTargetPosition:s=>[s.lon,s.lat,(S.terrain?(s.elevacion_msnm||0)*S.terrainEx:0)+(S.mode==='sub'?3:(s.prof_max||6)*ex+2)], getColor:[224,164,88], getWidth:2, widthUnits:'pixels' }) : null;
   const rech = new deck.ScatterplotLayer({ id:'rechazos', data:vi.filter(i=>n60Val(i)!=null && n60Val(i)>=50), pickable:false, stroked:true, filled:false, radiusMinPixels:7, radiusMaxPixels:14, getRadius:14, lineWidthMinPixels:2,
     getPosition:i=>[i.lon,i.lat,z0(i)+1], getLineColor:[224,164,88,230] });
-  const labels = (S.parrOn && S.parrLab) ? new deck.TextLayer({ id:'parr-lab', data:PARR_FC.features.filter(f => f.properties.etiqueta !== false && (f.properties.con_sondeos || f.properties.nivel === 'urbana') && (f.properties.nivel === 'urbana' ? map.getZoom() >= 12.5 : map.getZoom() < 14.5)), getPosition:f=>[f.properties.lon, f.properties.lat, (S.terrain ? 2300*S.terrainEx : 0)], getText:f=>f.properties.nombre.toUpperCase() + (f.properties.n_sondeos ? '  ·  ' + f.properties.n_sondeos : ''), getSize:f => f.properties.nivel === 'urbana' ? 13 : 11, getColor:f => f.properties.nivel === 'urbana' ? [255,255,255,210] : [236,128,70,220], fontFamily:'Manrope, sans-serif', fontWeight:700, outlineWidth:3, outlineColor:[15,20,25,230], fontSettings:{ sdf:true }, characterSet:'auto', billboard:true, getTextAnchor:'middle', getAlignmentBaseline:'center' }) : null;
+  const labels = (S.parrOn && S.parrLab) ? new deck.TextLayer({ id:'parr-lab', data:PARR_FC.features.filter(f => f.properties.nivel === 'cabecera' ? map.getZoom() < 12.5 : (f.properties.etiqueta !== false && (f.properties.con_sondeos || f.properties.nivel === 'urbana') && (f.properties.nivel === 'urbana' ? map.getZoom() >= 12.5 : map.getZoom() < 14.5))), getPosition:f=>[f.properties.lon, f.properties.lat, (S.terrain ? 2300*S.terrainEx : 0)], getText:f=>f.properties.nivel === 'cabecera' ? 'LOJA' : f.properties.nombre.toUpperCase(), getSize:f => f.properties.nivel === 'cabecera' ? 16 : (f.properties.nivel === 'urbana' ? 13 : 11), getColor:f => f.properties.nivel !== 'parroquia' ? [255,255,255,225] : [236,128,70,220], fontFamily:'Manrope, sans-serif', fontWeight:700, outlineWidth:3, outlineColor:[15,20,25,230], fontSettings:{ sdf:true }, characterSet:'auto', billboard:true, getTextAnchor:'middle', getAlignmentBaseline:'center' }) : null;
   const corteLine = CORTE.ids.length > 1 ? new deck.PathLayer({ id:'corte-linea', data:[CORTE.ids.map(id => { const s = sondById.get(id); return [s.lon, s.lat, (S.terrain ? (s.elevacion_msnm||0)*S.terrainEx : 0) + 2]; })], getPath:d=>d, getColor:[255,255,255,230], getWidth:3, widthUnits:'pixels', getDashArray:[6,4], dashJustified:true, extensions:[new deck.PathStyleExtension({ dash:true })] }) : null;
   const corteMarks = CORTE.ids.length ? new deck.ScatterplotLayer({ id:'corte-marcas', data:CORTE.ids.map(id=>sondById.get(id)), getPosition:s=>[s.lon,s.lat,(S.terrain?(s.elevacion_msnm||0)*S.terrainEx:0)+1], radiusMinPixels:9, radiusMaxPixels:16, getRadius:16, stroked:true, filled:false, lineWidthMinPixels:3, getLineColor:[255,255,255,240] }) : null;
   overlay.setProps({ layers:[cols, heads, rech, axis, labels, corteLine, corteMarks].filter(Boolean) });
@@ -304,8 +304,23 @@ $('terrain-ex').addEventListener('input', e => { S.terrainEx = +e.target.value; 
 
 map.on('load', () => { legend(); applyRaster(); syncTerrainMode(); mapLegend(); lista();
   const movil = window.innerWidth <= 860;
-  setTimeout(() => map.flyTo(movil ? { center:[-79.206,-3.998], zoom:12.4, pitch:58, bearing:-15, duration:3000, essential:true } : { center:[-79.2035,-4.003], zoom:14.4, pitch:60, bearing:-25, duration:3500, essential:true }), 600);
+  setTimeout(() => {
+    // En móvil, al terminar la entrada, encuadra el perímetro urbano en el centro de la pantalla (considera relieve y perspectiva)
+    if (movil) map.once('moveend', () => setTimeout(() => encuadrarPerimetro(3), 60));
+    map.flyTo(movil ? { center:[-79.2208,-3.9964], zoom:11.9, pitch:55, bearing:-15, duration:3000, essential:true } : { center:[-79.2035,-4.003], zoom:14.4, pitch:60, bearing:-25, duration:3500, essential:true });
+  }, 600);
   setTimeout(() => $('ayuda').classList.add('off'), 12000); });
+function encuadrarPerimetro(pasos){
+  const W = map.getContainer().clientWidth, H = map.getContainer().clientHeight;
+  const ring = PERIMETRO.coordinates[0].filter((c, i) => i % 3 === 0);
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  ring.forEach(c => { const p = map.project(c); x0 = Math.min(x0, p.x); y0 = Math.min(y0, p.y); x1 = Math.max(x1, p.x); y1 = Math.max(y1, p.y); });
+  const esc = Math.min(W * 0.9 / (x1 - x0), H * 0.74 / (y1 - y0));
+  const dx = (x0 + x1) / 2 - W / 2, dy = (y0 + y1) / 2 - H / 2;
+  if (pasos > 1) map.easeTo({ center: map.unproject([(x0 + x1) / 2, (y0 + y1) / 2]), zoom: map.getZoom() + Math.log2(esc), pitch: 55, bearing: -15, duration: 700, essential: true });
+  else { if (Math.hypot(dx, dy) < 4) return; map.panBy([dx, dy], { duration: 500, essential: true }); }
+  if (pasos > 1) map.once('moveend', () => setTimeout(() => encuadrarPerimetro(pasos - 1), 80));
+}
 map.on('zoomend', () => layers());
 let baseFail = 0;
 map.on('error', e => { if (S.base !== 'dark' && e && e.sourceId === 'base' && ++baseFail === 3){ S.hillshade = true; $('hillshade-on').checked = true; if (map.getLayer('hillshade')) map.setLayoutProperty('hillshade','visibility','visible'); if (map.getLayer('base')) map.setPaintProperty('base','raster-opacity',0); $('terrain-note').textContent = 'El mapa base externo no está disponible en esta vista privada; se muestra el relieve sombreado.'; } });
