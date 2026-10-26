@@ -134,18 +134,20 @@ function layers(){
     getPosition:getPos, getElevation:getEl, getFillColor:i => colorFor(i, sondById.get(i.id_spt)), getLineColor:[15,20,25,200], lineWidthMinPixels:1, stroked:true, material:{ ambient:0.75, diffuse:0.55, shininess:16, specularColor:[40,40,40] },
     updateTriggers:{ getFillColor:[S.colorBy,S.sel], getPosition:[S.mode,ex,S.terrain,S.terrainEx], getElevation:[ex] },
 
-    onHover: info => tip(info), onClick: info => info.object && select(info.object.id_spt) });
+    onHover: info => tip(info), onClick: info => info.object && pick(info.object.id_spt) });
   // Cabeza del sondeo en superficie
   const heads = new deck.ScatterplotLayer({ id:'cabezas', data:vs, pickable:true, radiusMinPixels:4, radiusMaxPixels:9, getPosition:s=>[s.lon,s.lat,(S.terrain?(s.elevacion_msnm||0)*S.terrainEx:0)+0.5],
     getFillColor:s => s.estado_mapa==='XY_LEGADO_PENDIENTE' ? [224,164,88] : [232,237,242], getLineColor:[15,20,25], lineWidthMinPixels:1, stroked:true,
-    getRadius:12, onHover:info=>tip(info,true), onClick:info=>info.object && select(info.object.id_spt) });
+    getRadius:12, onHover:info=>tip(info,true), onClick:info=>info.object && pick(info.object.id_spt) });
   // Eje vertical del sondeo seleccionado
   const sel = S.sel ? sondById.get(S.sel) : null;
   const axis = sel ? new deck.LineLayer({ id:'eje', data:[sel], getSourcePosition:s=>[s.lon,s.lat,(S.terrain?(s.elevacion_msnm||0)*S.terrainEx:0)+(S.mode==='sub'?-(s.prof_max||s.profundidad_total_m||6)*ex-2:0)], getTargetPosition:s=>[s.lon,s.lat,(S.terrain?(s.elevacion_msnm||0)*S.terrainEx:0)+(S.mode==='sub'?3:(s.prof_max||6)*ex+2)], getColor:[224,164,88], getWidth:2, widthUnits:'pixels' }) : null;
   const rech = new deck.ScatterplotLayer({ id:'rechazos', data:vi.filter(i=>n60Val(i)!=null && n60Val(i)>=50), pickable:false, stroked:true, filled:false, radiusMinPixels:7, radiusMaxPixels:14, getRadius:14, lineWidthMinPixels:2,
     getPosition:i=>[i.lon,i.lat,z0(i)+1], getLineColor:[224,164,88,230] });
   const labels = (S.parrOn && S.parrLab) ? new deck.TextLayer({ id:'parr-lab', data:PARROQUIAS.features, getPosition:f=>[f.properties.lon, f.properties.lat, (S.terrain ? 2300*S.terrainEx : 0)], getText:f=>f.properties.nombre.toUpperCase(), getSize:13, getColor:[255,255,255,210], fontFamily:'Manrope, sans-serif', fontWeight:700, outlineWidth:3, outlineColor:[15,20,25,230], fontSettings:{ sdf:true }, characterSet:'auto', billboard:true, getTextAnchor:'middle', getAlignmentBaseline:'center' }) : null;
-  overlay.setProps({ layers:[cols, heads, rech, axis, labels].filter(Boolean) });
+  const corteLine = CORTE.ids.length > 1 ? new deck.PathLayer({ id:'corte-linea', data:[CORTE.ids.map(id => { const s = sondById.get(id); return [s.lon, s.lat, (S.terrain ? (s.elevacion_msnm||0)*S.terrainEx : 0) + 2]; })], getPath:d=>d, getColor:[255,255,255,230], getWidth:3, widthUnits:'pixels', getDashArray:[6,4], dashJustified:true, extensions:[new deck.PathStyleExtension({ dash:true })] }) : null;
+  const corteMarks = CORTE.ids.length ? new deck.ScatterplotLayer({ id:'corte-marcas', data:CORTE.ids.map(id=>sondById.get(id)), getPosition:s=>[s.lon,s.lat,(S.terrain?(s.elevacion_msnm||0)*S.terrainEx:0)+1], radiusMinPixels:9, radiusMaxPixels:16, getRadius:16, stroked:true, filled:false, lineWidthMinPixels:3, getLineColor:[255,255,255,240] }) : null;
+  overlay.setProps({ layers:[cols, heads, rech, axis, labels, corteLine, corteMarks].filter(Boolean) });
   $('k-sond').textContent = vs.length;
   return vs;
 }
@@ -294,5 +296,70 @@ map.on('load', () => { legend(); applyRaster(); syncTerrainMode(); mapLegend(); 
 map.on('zoomend', () => layers());
 let baseFail = 0;
 map.on('error', e => { if (e && e.sourceId === 'base' && ++baseFail === 3){ S.hillshade = true; $('hillshade-on').checked = true; if (map.getLayer('hillshade')) map.setLayoutProperty('hillshade','visibility','visible'); if (map.getLayer('base')) map.setPaintProperty('base','raster-opacity',0); $('terrain-note').textContent = 'El mapa base externo no está disponible en esta vista privada; se muestra el relieve sombreado.'; } });
-map.on('click', e => { let best = null, bd = 28; visibleSondeos().forEach(s => { const p = map.project([s.lon, s.lat]); const d = Math.hypot(p.x - e.point.x, p.y - e.point.y); if (d < bd){ bd = d; best = s; } }); if (best) select(best.id_spt); });
+map.on('click', e => { let best = null, bd = 28; visibleSondeos().forEach(s => { const p = map.project([s.lon, s.lat]); const d = Math.hypot(p.x - e.point.x, p.y - e.point.y); if (d < bd){ bd = d; best = s; } }); if (best) pick(best.id_spt); });
 map.on('style.load', () => { if (map.getLayer('base')) map.setPaintProperty('base','raster-opacity', S.mode==='sub'?0.55:0.95); applyRaster(); });
+
+
+/* ---------- corte geotécnico (nivel 1: correlación entre sondeos) ---------- */
+const CORTE = { activo:false, ids:[], dmax:500 };
+const distM = (a, b) => { const R = 6371000, toR = Math.PI/180; const dLat = (b.lat-a.lat)*toR, dLon = (b.lon-a.lon)*toR; const h = Math.sin(dLat/2)**2 + Math.cos(a.lat*toR)*Math.cos(b.lat*toR)*Math.sin(dLon/2)**2; return 2*R*Math.asin(Math.sqrt(h)); };
+function pick(id){ if (!CORTE.activo) return select(id); if (CORTE.ids.includes(id)) return; if (CORTE.ids.length >= 3){ corteMsg('Máximo 3 sondeos. Quita uno para cambiarlo.'); return; }
+  const s = sondById.get(id); if (CORTE.ids.length){ const prev = sondById.get(CORTE.ids[CORTE.ids.length-1]); const d = distM(prev, s); if (d > CORTE.dmax){ corteMsg(`${pub(s)} está a ${fmt(d,0)} m del anterior (máximo ${CORTE.dmax} m).`); return; } }
+  CORTE.ids.push(id); corteUI(); layers(); }
+function corteMsg(m){ $('corte-msg').textContent = m; }
+function corteUI(){ $('corte-chips').innerHTML = CORTE.ids.map((id,i) => `<span class="chip">${i+1} · ${pub(sondById.get(id))}<button data-i="${i}" aria-label="Quitar">✕</button></span>`).join(''); $('corte-gen').disabled = CORTE.ids.length < 2; $('corte-sel').textContent = CORTE.activo ? 'Terminar selección' : 'Seleccionar sondeos'; $('corte-sel').classList.toggle('ghost', !CORTE.activo); document.body.classList.toggle('modo-corte', CORTE.activo);
+  if (CORTE.activo) corteMsg(CORTE.ids.length ? `${CORTE.ids.length} elegido(s). Toca el siguiente sondeo (a menos de ${CORTE.dmax} m).` : 'Toca el primer sondeo en el mapa.'); }
+$('corte-sel').addEventListener('click', () => { CORTE.activo = !CORTE.activo; if (CORTE.activo && S.sel){ S.sel = null; $('ficha').hidden = true; if (POP) POP.remove(); } corteUI(); layers(); if (!CORTE.activo) corteMsg(''); });
+$('corte-chips').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; CORTE.ids.splice(+b.dataset.i, 1); corteUI(); layers(); });
+$('corte-dmax').addEventListener('input', e => { CORTE.dmax = +e.target.value; $('corte-dmax-out').textContent = CORTE.dmax + ' m'; });
+$('corte-close').addEventListener('click', () => { $('corte').hidden = true; });
+$('corte-gen').addEventListener('click', () => { corte(); });
+
+function corte(){
+  const ss = CORTE.ids.map(id => sondById.get(id)); if (ss.length < 2) return;
+  // distancias acumuladas a lo largo de la traza
+  const X = [0]; for (let i = 1; i < ss.length; i++) X.push(X[i-1] + distM(ss[i-1], ss[i]));
+  const L = X[X.length-1];
+  const ints = ss.map(s => (intervalsBySond.get(s.id_spt)||[]).filter(i => i.prof_hasta_m != null));
+  const cota = ss.map(s => s.elevacion_msnm || 0);
+  const zTop = Math.max(...cota) + 1.5, zBot = Math.min(...ss.map((s,k) => cota[k] - Math.max(s.profundidad_total_m||0, ...ints[k].map(i=>i.prof_hasta_m)))) - 1.5;
+  // lienzo
+  const W = 960, H = 380, ml = 64, mr = 24, mt = 34, mb = 40; const pw = W - ml - mr, ph = H - mt - mb;
+  const ex = Math.max(1, Math.min(6, (pw / Math.max(L, 60)) / (ph / (zTop - zBot)) ));  // exageración vertical implícita, se informa
+  const x = d => ml + (L > 0 ? d / L : 0.5) * pw, y = z => mt + (zTop - z) / (zTop - zBot) * ph;
+  const colW = Math.max(18, Math.min(40, pw / (ss.length * 6)));
+  let g = `<rect width="${W}" height="${H}" fill="#0f1419"/>`;
+  // rejilla de cotas
+  const step = (zTop - zBot) > 30 ? 5 : ((zTop - zBot) > 12 ? 2 : 1);
+  for (let z = Math.ceil(zBot/step)*step; z <= zTop; z += step) g += `<line x1="${ml}" x2="${W-mr}" y1="${y(z)}" y2="${y(z)}" stroke="#2a3542"/><text x="${ml-6}" y="${y(z)+3}" fill="#9aa8b6" font-size="10" text-anchor="end" font-family="JetBrains Mono">${z}</text>`;
+  // superficie del terreno entre sondeos
+  const surf = []; const n = 40;
+  for (let k = 0; k < ss.length - 1; k++) for (let j = 0; j <= n; j++){ const f = j/n; const lon = ss[k].lon + (ss[k+1].lon - ss[k].lon)*f, lat = ss[k].lat + (ss[k+1].lat - ss[k].lat)*f; const z = cota[k] + (cota[k+1]-cota[k])*f; surf.push([X[k] + (X[k+1]-X[k])*f, z]); }  // superficie: recta entre cotas de informe (el MDT se incorpora en el nivel 2)
+  // ajuste: que la superficie pase por la cota real de cada sondeo (corrige diferencias MDT vs informe)
+  ss.forEach((s,k) => { const i = k*(n+1) + (k < ss.length-1 ? 0 : n); if (surf[i]) surf[i][1] = cota[k]; });
+  g += `<path d="M ${surf.map(p => x(p[0]).toFixed(1)+' '+y(p[1]).toFixed(1)).join(' L ')} L ${x(L).toFixed(1)} ${H-mb} L ${x(0).toFixed(1)} ${H-mb} Z" fill="#1a222c"/>`;
+  g += `<path d="M ${surf.map(p => x(p[0]).toFixed(1)+' '+y(p[1]).toFixed(1)).join(' L ')}" fill="none" stroke="#7fb3d5" stroke-width="1.5"/>`;
+  // correlación de estratos entre sondeos vecinos (mismo SUCS, orden similar)
+  for (let k = 0; k < ss.length - 1; k++){
+    const A = ints[k], B = ints[k+1]; const used = new Set();
+    A.forEach(ia => { const ka = sucsKey(ia.sucs); if (ka === 'NONE') return;
+      let best = null, bd = 1e9; B.forEach((ib, j) => { if (used.has(j) || sucsKey(ib.sucs) !== ka) return; const d = Math.abs(ib.prof_desde_m - ia.prof_desde_m) + Math.abs(ib.prof_hasta_m - ia.prof_hasta_m); if (d < bd){ bd = d; best = j; } });
+      if (best == null || bd > 4) return; used.add(best); const ib = B[best]; const c = SUCS_COLOR[ka];
+      const pts = [[X[k]+colW/2/ (pw/L||1), cota[k]-ia.prof_desde_m],[X[k+1], cota[k+1]-ib.prof_desde_m],[X[k+1], cota[k+1]-ib.prof_hasta_m],[X[k], cota[k]-ia.prof_hasta_m]];
+      g += `<polygon points="${pts.map(p => x(p[0]).toFixed(1)+','+y(p[1]).toFixed(1)).join(' ')}" fill="rgb(${c.join(',')})" fill-opacity=".32" stroke="rgb(${c.join(',')})" stroke-opacity=".6" stroke-dasharray="4 3"/>`; });
+  }
+  // columnas
+  ss.forEach((s,k) => { const cx = x(X[k]);
+    ints[k].forEach(i => { const c = SUCS_COLOR[sucsKey(i.sucs)]; const y1 = y(cota[k]-i.prof_desde_m), y2 = y(cota[k]-i.prof_hasta_m);
+      g += `<rect x="${cx-colW/2}" y="${y1}" width="${colW}" height="${Math.max(1,y2-y1)}" fill="rgb(${c.join(',')})" stroke="#0f1419"><title>${pub(s)} · ${fmt(i.prof_desde_m,2)}–${fmt(i.prof_hasta_m,2)} m · ${i.sucs||'—'}${n60Val(i)!=null?' · N60 '+fmt(n60Val(i),0):''}</title></rect>`;
+      if (y2-y1 > 11) g += `<text x="${cx}" y="${(y1+y2)/2+3}" fill="#0f1419" font-size="9" font-weight="700" text-anchor="middle" font-family="Manrope">${i.sucs||''}</text>`;
+      const nv = n60Val(i); if (nv != null) g += `<text x="${cx+colW/2+4}" y="${(y1+y2)/2+3}" fill="${n60Origin(i)==='REPORTADO'?'#e0a458':'#9aa8b6'}" font-size="9" font-family="JetBrains Mono">${fmt(nv,0)}</text>`; });
+    g += `<text x="${cx}" y="${y(cota[k])-8}" fill="#e8edf2" font-size="11" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">${pub(s)}</text><text x="${cx}" y="${H-mb+14}" fill="#9aa8b6" font-size="10" text-anchor="middle" font-family="JetBrains Mono">${fmt(X[k],0)} m</text>`; });
+  g += `<text x="${ml}" y="${H-6}" fill="#9aa8b6" font-size="10" font-family="Manrope">Cotas en msnm · N60 junto a cada intervalo (naranja reportado, gris estimado) · tramas: correlación interpretativa de estratos con igual SUCS · exageración vertical ≈ ${ex.toFixed(1)}×</text>`;
+  g += `<text x="${W-mr}" y="${mt-18}" fill="#9aa8b6" font-size="10" text-anchor="end" font-family="Manrope">Longitud ${fmt(L,0)} m · GEOARQUITEC</text>`;
+  const svg = $('corte-svg'); svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.innerHTML = g;
+  $('corte-titulo').textContent = `Corte ${ss.map(pub).join(' → ')} · ${fmt(L,0)} m`;
+  $('corte').hidden = false; corteMsg('Corte generado. Puedes cambiar los sondeos y volver a generar.');
+}
+$('corte-png').addEventListener('click', () => { const svg = $('corte-svg'); const xml = new XMLSerializer().serializeToString(svg); const img = new Image(); const url = URL.createObjectURL(new Blob([xml], { type:'image/svg+xml' }));
+  img.onload = () => { const c = document.createElement('canvas'); c.width = 1920; c.height = 760; const g2 = c.getContext('2d'); g2.drawImage(img, 0, 0, 1920, 760); URL.revokeObjectURL(url); const a = document.createElement('a'); a.download = 'corte_geotecnico.png'; a.href = c.toDataURL('image/png'); a.click(); }; img.src = url; });

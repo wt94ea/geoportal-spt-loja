@@ -107,3 +107,17 @@ a.hud-chip.back{text-decoration:none;color:var(--accent);font-weight:700}
   .map-legend{min-width:0;max-width:46%;padding:9px 10px;font-size:11px;bottom:26px} .map-legend.left{transform:scale(.75);transform-origin:left bottom;max-width:60%} .map-legend h3{font-size:10px;margin-bottom:5px} .map-legend .sw{width:16px;height:10px} .map-legend.left .cols{gap:0 6px} .map-legend .legend-ticks{font-size:10px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* corte geotécnico */
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:999px;border:1px solid var(--accent);color:var(--accent);font-family:var(--mono);font-size:11px}
+.chip button{background:transparent;border:0;color:var(--muted);padding:0;font-size:12px;line-height:1}
+.corte-block button[disabled]{opacity:.45;cursor:default}
+body.modo-corte #map{cursor:crosshair}
+.corte-panel{position:absolute;left:12px;right:12px;bottom:12px;z-index:7;background:rgba(22,28,36,.97);border:1px solid var(--line);border-radius:10px;padding:10px 12px 8px;box-shadow:0 14px 40px rgba(0,0,0,.45);max-height:52%;display:flex;flex-direction:column}
+.corte-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+.corte-head strong{font-size:13px}
+.corte-btns{display:flex;gap:6px}
+.corte-svgwrap{overflow:auto;min-height:0}
+#corte-svg{width:100%;height:auto;display:block;background:#0f1419;border-radius:6px}
+@media (max-width:860px){ .corte-panel{left:6px;right:6px;bottom:6px;max-height:60%} }
