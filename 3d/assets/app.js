@@ -108,7 +108,7 @@ function style(base){
   layers.push({ id:'perimetro', type:'line', source:'perimetro', paint:{ 'line-color':'#e0a458', 'line-width':2, 'line-dasharray':[3,2], 'line-opacity':0.9 } });
   return { version:8,
     sources:{ base:{ type:'raster', tiles:BASES[base].tiles, tileSize:256, attribution:BASES[base].attribution, maxzoom:19 },
-      dem:{ type:'raster-dem', tiles:DEM_TILES, tileSize:256, encoding:'terrarium', minzoom:11, maxzoom:15, attribution:'MDT 3 m · GEOARQUITEC' },
+      dem:{ type:'raster-dem', tiles:DEM_TILES, tileSize:256, encoding:'terrarium', minzoom:9, maxzoom:15, attribution:'MDT 3 m · GEOARQUITEC' },
       perimetro:{ type:'geojson', data:{ type:'Feature', geometry:PERIMETRO, properties:{} } },
       parroquias:{ type:'geojson', data:PARR_FC },
       ...rasterSources() },
