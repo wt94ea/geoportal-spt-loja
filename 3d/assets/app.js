@@ -34,6 +34,7 @@ function inGeom(pt, g){ const polys = g.type === 'Polygon' ? [g.coordinates] : g
 SONDEOS.forEach(s => { s.parroquia = null; s.urbano = false; if (s.lon == null) return; const f = PARROQUIAS.features.find(f => inGeom([s.lon, s.lat], f.geometry)); if (f) s.parroquia = f.properties.nombre; s.urbano = inGeom([s.lon, s.lat], PERIMETRO); });
 const intervalsBySond = new Map(); INTERVALOS.forEach(i => { if (!intervalsBySond.has(i.id_spt)) intervalsBySond.set(i.id_spt, []); intervalsBySond.get(i.id_spt).push(i); });
 intervalsBySond.forEach(a => a.sort((x,y)=>x.prof_desde_m-y.prof_desde_m));
+const profMax = new Map(); intervalsBySond.forEach((a, id) => profMax.set(id, Math.max(...a.map(i => i.prof_hasta_m || 0))));
 
 /* ---------- filtros ---------- */
 function fill(sel, vals){ vals.forEach(v => { const o = document.createElement('option'); o.value = v; o.textContent = v; sel.appendChild(o); }); }
@@ -124,7 +125,10 @@ function layers(){
   // Columna por intervalo: en "sub" la base está a -prof_hasta·ex (bajo la superficie), altura = espesor·ex.
   // En "up" se apila hacia arriba: base = prof_desde·ex.
   const z0 = i => (S.terrain ? (i.cota_sondeo_m||0)*S.terrainEx : 0);
-  const getPos = i => [i.lon, i.lat, z0(i) + (S.mode === 'sub' ? -i.prof_hasta_m*ex : i.prof_desde_m*ex)];
+  // Modo 'levantado': el perfil se alza sobre el terreno conservando el orden real (superficie arriba, fondo abajo):
+  // base del intervalo = (prof_total - prof_hasta)·ex, así el estrato más superficial queda en la cima de la columna.
+  const profTot = i => (profMax.get(i.id_spt) || i.prof_hasta_m);
+  const getPos = i => [i.lon, i.lat, z0(i) + (S.mode === 'sub' ? -i.prof_hasta_m*ex : (profTot(i) - i.prof_hasta_m)*ex)];
   const getEl  = i => Math.max(0.2, (i.prof_hasta_m - i.prof_desde_m)) * ex;
   const cols = new deck.ColumnLayer({ id:'intervalos', data:vi, diskResolution:12, radius:colRadius(), extruded:true, pickable:true,
     getPosition:getPos, getElevation:getEl, getFillColor:i => colorFor(i, sondById.get(i.id_spt)), getLineColor:[15,20,25,200], lineWidthMinPixels:1, stroked:true, material:{ ambient:0.75, diffuse:0.55, shininess:16, specularColor:[40,40,40] },
