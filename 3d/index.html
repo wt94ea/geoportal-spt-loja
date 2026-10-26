@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-g.png"/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=JetBrains+Mono:wght@400;600&display=swap"/>
 <link rel="stylesheet" href="assets/vendor/maplibre-gl.css"/>
-<link rel="stylesheet" href="assets/style.css"/>
+<link rel="stylesheet" href="assets/style.css?v=capas1"/>
 </head>
 <body>
 <div class="app">
@@ -77,7 +77,7 @@
     <section class="block">
       <h2>Filtros</h2>
       <div class="grid2">
-        <div><label for="f-ambito">Ámbito</label><select id="f-ambito"><option value="URBANO">Perímetro urbano de Loja</option><option value="">Todos los sondeos</option></select></div>
+        <div><label for="f-ambito">Ámbito</label><select id="f-ambito"><option value="">Todos los sondeos</option><option value="URBANO">Perímetro urbano de Loja</option></select></div>
         <div><label for="f-canton">Cantón</label><select id="f-canton"><option value="">Todos</option></select></div>
         <div><label for="f-parr">Parroquia</label><select id="f-parr"><option value="">Todas</option></select></div>
         <div><label for="f-sucs">SUCS</label><select id="f-sucs"><option value="">Todos</option></select></div>
@@ -127,10 +127,6 @@
       <a class="hud-chip title back" href="../" title="Volver al geoportal 2D">‹ Geoportal 2D</a>
       <div class="hud-chip title"><span class="dot"></span>Plataforma geotécnica 3D</div>
       <div class="hud-chip title muted"><strong id="k-sond">–</strong>&nbsp;sondeos · EPSG:32717</div>
-      <div class="hud-chip" id="hud-basemap">
-        <button data-base="dark" class="active">Oscuro</button><button data-base="sat">Satélite</button><button data-base="topo">Topo</button><button data-base="osm">Calles</button>
-      </div>
-      <div class="hud-chip" id="hud-tilt"><button id="tilt-2d">2D</button><button id="tilt-3d" class="active">3D</button></div>
     </div>
     <div class="tooltip" id="tip" hidden></div>
     <aside class="map-legend" id="map-legend"></aside>
@@ -152,6 +148,6 @@
 <script src="data/rasters/rasters.js"></script>
 <script src="data/perimetro.js"></script>
 <script src="data/parroquias.js"></script>
-<script src="assets/app.js?v=terr9"></script>
+<script src="assets/app.js?v=capas1"></script>
 </body>
 </html>

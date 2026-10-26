@@ -21,7 +21,7 @@ function ramp(v, stops){ if (v == null || isNaN(v)) return [120,120,120]; if (v 
 const CAL_COLOR = { ok:[91,189,122], legado:[224,164,88], est:[127,179,213] };
 
 /* ---------- estado ---------- */
-const S = { mode:'up', exag:25, raster:'qadm_pred', rasterOp:0.25, terrain:true, hillshade:true, terrainEx:1.5, colorBy:'sucs', ambito:'URBANO', canton:'', parr:'', anio:'', sucs:'', q:'', sel:null, base:'dark', tilt:true, parrOn:true, parrLab:true };
+const S = { mode:'up', exag:25, raster:'qadm_pred', rasterOp:0.25, terrain:true, hillshade:true, terrainEx:1.5, colorBy:'sucs', ambito:'', canton:'', parr:'', anio:'', sucs:'', q:'', sel:null, base:'dark', tilt:true, parrOn:true, parrLab:true };
 const sondById = new Map(SONDEOS.map(s => [s.id_spt, s]));
 const pub = s => s.codigo_publico || ('SPT-' + s.id_spt);  // código anonimizado para la interfaz
 const sentence = x => { x = String(x||'').trim().toLowerCase(); return x ? x.charAt(0).toUpperCase() + x.slice(1) : '—'; };
@@ -116,6 +116,23 @@ function style(base){
     layers };
 }
 const map = new maplibregl.Map({ container:'map', style: style(S.base), center:[-79.21,-3.99], zoom:12.3, pitch:0, bearing:0, maxPitch:75, antialias:true, attributionControl:true });
+// Control de capas (como en el geoportal 2D): mapa base y vista 2D/3D, plegado tras un icono
+class CapasControl {
+  onAdd(m){ this._c = document.createElement('div'); this._c.className = 'maplibregl-ctrl maplibregl-ctrl-group capas-ctrl';
+    this._c.innerHTML = `<button type="button" class="capas-btn" aria-label="Mapa base y vista" title="Mapa base y vista" aria-expanded="false"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 3 2 8.5 12 14l10-5.5L12 3Z" fill="currentColor"/><path d="M4.3 12.2 2 13.5 12 19l10-5.5-2.3-1.3L12 16.4l-7.7-4.2Z" fill="currentColor" opacity=".55"/></svg></button>
+      <div class="capas-menu" hidden><div class="capas-grupo"><span>Mapa base</span>
+        <label><input type="radio" name="base" value="dark" checked> Oscuro</label><label><input type="radio" name="base" value="sat"> Satélite</label><label><input type="radio" name="base" value="topo"> Topográfico</label><label><input type="radio" name="base" value="osm"> Calles</label></div>
+        <div class="capas-grupo"><span>Vista</span><label><input type="radio" name="vista" value="3d" checked> 3D (perspectiva)</label><label><input type="radio" name="vista" value="2d"> 2D (planta)</label></div></div>`;
+    const btn = this._c.querySelector('.capas-btn'), menu = this._c.querySelector('.capas-menu');
+    const abrir = v => { menu.hidden = !v; btn.setAttribute('aria-expanded', String(v)); this._c.classList.toggle('open', v); };
+    btn.addEventListener('click', () => abrir(menu.hidden));
+    m.on('click', () => abrir(false)); document.addEventListener('click', e => { if (!this._c.contains(e.target)) abrir(false); });
+    this._c.querySelectorAll('input[name=base]').forEach(r => r.addEventListener('change', () => { S.base = r.value; map.setStyle(style(S.base)); }));
+    this._c.querySelectorAll('input[name=vista]').forEach(r => r.addEventListener('change', () => { S.tilt = r.value === '3d'; map.easeTo(S.tilt ? { pitch:58, bearing:-20 } : { pitch:0, bearing:0 }); }));
+    return this._c; }
+  onRemove(){ this._c.remove(); }
+}
+map.addControl(new CapasControl(), 'top-right');
 map.addControl(new maplibregl.NavigationControl({ visualizePitch:true }), 'top-right');
 map.addControl(new maplibregl.ScaleControl({ unit:'metric' }), 'bottom-right');
 const overlay = new deck.MapboxOverlay({ interleaved:true, layers:[] });
@@ -258,16 +275,13 @@ $('exag').addEventListener('input', e => { S.exag = +e.target.value; $('exag-out
 $('color-by').addEventListener('change', e => { S.colorBy = e.target.value; legend(); mapLegend(); layers(); });
 [['f-ambito','ambito'],['f-canton','canton'],['f-parr','parr'],['f-sucs','sucs']].forEach(([id,k]) => $(id).addEventListener('change', e => { S[k] = e.target.value; layers(); lista(); if (k==='ambito' || k==='parr' || k==='canton') fit(); }));
 $('q').addEventListener('input', e => { S.q = e.target.value.trim(); layers(); lista(); });
-$('reset').addEventListener('click', () => { Object.assign(S,{ambito:'URBANO',canton:'',parr:'',sucs:'',q:'',sel:null}); ['f-canton','f-parr','f-sucs','q'].forEach(id=>$(id).value=''); $('f-ambito').value='URBANO'; $('ficha').hidden=true; $('mini').hidden=true; if (POP) POP.remove(); layers(); lista(); fit(); });
+$('reset').addEventListener('click', () => { Object.assign(S,{ambito:'',canton:'',parr:'',sucs:'',q:'',sel:null}); ['f-canton','f-parr','f-sucs','q'].forEach(id=>$(id).value=''); $('f-ambito').value=''; $('ficha').hidden=true; $('mini').hidden=true; if (POP) POP.remove(); layers(); lista(); fit(); });
 $('fit').addEventListener('click', fit);
 $('ficha-close').addEventListener('click', () => { S.sel=null; $('ficha').hidden=true; $('mini').hidden=true; if (POP) POP.remove(); layers(); });
 function setPanel(open){ document.querySelector('.app').classList.toggle('panel-collapsed', !open); $('panel-toggle').hidden = open; setTimeout(() => { map.resize(); if (S.sel) popup(sondById.get(S.sel), intervalsBySond.get(S.sel)||[]); }, 60); }
 $('panel-toggle').addEventListener('click', () => setPanel(true));
 $('panel-min').addEventListener('click', () => setPanel(false));
 if (window.innerWidth <= 860) setPanel(false); else $('panel-toggle').hidden = true;  // en el teléfono el mapa ocupa toda la pantalla al entrar
-document.querySelectorAll('#hud-basemap button').forEach(b => b.addEventListener('click', () => { document.querySelectorAll('#hud-basemap button').forEach(x=>x.classList.remove('active')); b.classList.add('active'); S.base=b.dataset.base; map.setStyle(style(S.base)); }));
-$('tilt-2d').addEventListener('click', () => { S.tilt=false; $('tilt-2d').classList.add('active'); $('tilt-3d').classList.remove('active'); map.easeTo({pitch:0,bearing:0}); });
-$('tilt-3d').addEventListener('click', () => { S.tilt=true; $('tilt-3d').classList.add('active'); $('tilt-2d').classList.remove('active'); map.easeTo({pitch:58,bearing:-20}); });
 
 /* ---------- rásteres de interpolación ---------- */
 const valImgs = {};
@@ -289,7 +303,6 @@ function rasterLegend(){
 }
 function applyRaster(){ for (const k in RASTERS){ if (map.getLayer('r_'+k)){ map.setLayoutProperty('r_'+k,'visibility', S.raster===k?'visible':'none'); map.setPaintProperty('r_'+k,'raster-opacity',S.rasterOp); } } rasterLegend(); loadVal(S.raster); if ($('map-legend')) mapLegend(); }
 $('raster-sel').addEventListener('change', e => { S.raster = e.target.value; applyRaster(); $('raster-val').textContent = S.raster ? (TOUCH ? 'Toca el mapa para leer el valor.' : 'Mueve el cursor sobre el mapa para leer el valor.') : ''; });
-const _topo = $('hud-basemap');
 $('raster-op').addEventListener('input', e => { S.rasterOp = +e.target.value/100; $('raster-op-out').textContent = e.target.value+' %'; applyRaster(); });
 map.on(TOUCH ? 'click' : 'mousemove', e => { if (!S.raster) return; const v = rasterValueAt(e.lngLat); const m = RASTERS[S.raster]; $('raster-val').textContent = v==null ? 'Fuera del perímetro' : `${m.titulo}: ${fmt(v, S.raster.startsWith('qadm')?2:1)} ${m.unidad}`; });
 /* ---------- terreno ---------- */
